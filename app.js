@@ -12,9 +12,11 @@ const state = {
 };
 
 // DOM Elements
+let elements = {};
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const elements = {
+    elements = {
         apiKey: document.getElementById('apiKey'),
         apiStatus: document.getElementById('apiStatus'),
         saveApiKey: document.getElementById('saveApiKey'),
