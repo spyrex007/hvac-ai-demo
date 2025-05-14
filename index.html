@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVAC AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HVAC AI Assistant</h1>
+            <div class="api-key-section">
+                <input type="password" id="apiKey" placeholder="Enter OpenAI API Key">
+                <button id="saveApiKey">Save API Key</button>
+                <span id="apiStatus"></span>
+            </div>
+            <div class="mode-toggle">
+                <button id="chatMode" class="mode-btn active">Chat Mode</button>
+                <button id="identifyMode" class="mode-btn">Identify Mode</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Chat Mode Section -->
+            <section id="chatSection" class="mode-section">
+                <div class="chat-container">
+                    <div id="chatMessages" class="messages"></div>
+                    <div class="input-area">
+                        <textarea id="userInput" placeholder="Type your message..."></textarea>
+                        <button id="sendMessage">Send</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Identify Mode Section -->
+            <section id="identifySection" class="mode-section hidden">
+                <div class="upload-section">
+                    <div class="upload-options">
+                        <input type="file" id="imageUpload" accept="image/*" capture="environment">
+                        <button id="captureBtn">Take Photo</button>
+                        <button id="uploadBtn">Upload Image</button>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                <div id="analysisResult" class="analysis-result hidden">
+                    <h3>Part Analysis</h3>
+                    <div id="partDetails"></div>
+                    <div class="confirmation-section hidden">
+                        <p>Is this the correct part?</p>
+                        <button id="confirmYes">Yes</button>
+                        <button id="confirmNo">No</button>
+                        <div class="quantity-section hidden">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" id="quantity" min="1" value="1">
+                            <button id="addToParts">Add to Parts List</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Parts Table Section -->
+            <section id="partsTableSection" class="parts-section">
+                <h2>Parts List</h2>
+                <table id="partsTable">
+                    <thead>
+                        <tr>
+                            <th>Part Name</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsTableBody"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
