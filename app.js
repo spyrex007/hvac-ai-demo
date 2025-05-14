@@ -12,54 +12,65 @@ const state = {
 };
 
 // DOM Elements
-const elements = {
-    apiKey: document.getElementById('apiKey'),
-    apiStatus: document.getElementById('apiStatus'),
-    saveApiKey: document.getElementById('saveApiKey'),
-    chatMode: document.getElementById('chatMode'),
-    identifyMode: document.getElementById('identifyMode'),
-    chatSection: document.getElementById('chatSection'),
-    identifySection: document.getElementById('identifySection'),
-    imageUpload: document.getElementById('imageUpload'),
-    captureBtn: document.getElementById('captureBtn'),
-    uploadBtn: document.getElementById('uploadBtn'),
-    imagePreview: document.getElementById('imagePreview'),
-    analysisResult: document.getElementById('analysisResult'),
-    partDetails: document.getElementById('partDetails'),
-    confirmationSection: document.querySelector('.confirmation-section'),
-    quantitySection: document.querySelector('.quantity-section'),
-    quantity: document.getElementById('quantity'),
-    addToParts: document.getElementById('addToParts'),
-    partsTableBody: document.getElementById('partsTableBody'),
-    userInput: document.getElementById('userInput'),
-    sendMessage: document.getElementById('sendMessage'),
-    chatMessages: document.getElementById('chatMessages')
-};
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const elements = {
+        apiKey: document.getElementById('apiKey'),
+        apiStatus: document.getElementById('apiStatus'),
+        saveApiKey: document.getElementById('saveApiKey'),
+        chatMode: document.getElementById('chatMode'),
+        identifyMode: document.getElementById('identifyMode'),
+        chatSection: document.getElementById('chatSection'),
+        identifySection: document.getElementById('identifySection'),
+        imageUpload: document.getElementById('imageUpload'),
+        captureBtn: document.getElementById('captureBtn'),
+        uploadBtn: document.getElementById('uploadBtn'),
+        imagePreview: document.getElementById('imagePreview'),
+        analysisResult: document.getElementById('analysisResult'),
+        partDetails: document.getElementById('partDetails'),
+        confirmationSection: document.querySelector('.confirmation-section'),
+        quantitySection: document.querySelector('.quantity-section'),
+        quantity: document.getElementById('quantity'),
+        addToParts: document.getElementById('addToParts'),
+        partsTableBody: document.getElementById('partsTableBody'),
+        userInput: document.getElementById('userInput'),
+        sendMessage: document.getElementById('sendMessage'),
+        chatMessages: document.getElementById('chatMessages'),
+        confirmYes: document.getElementById('confirmYes'),
+        confirmNo: document.getElementById('confirmNo')
+    };
 
-// Initialize API Key Status
-if (state.apiKey) {
-    elements.apiKey.value = state.apiKey;
-    elements.apiStatus.textContent = '✓ API Key Saved';
-    elements.apiStatus.className = '';
-}
-
-// Event Listeners
-elements.saveApiKey.addEventListener('click', handleSaveApiKey);
-elements.chatMode.addEventListener('click', () => switchMode('chat'));
-elements.identifyMode.addEventListener('click', () => switchMode('identify'));
-elements.imageUpload.addEventListener('change', handleImageUpload);
-elements.captureBtn.addEventListener('click', () => elements.imageUpload.click());
-elements.uploadBtn.addEventListener('click', () => elements.imageUpload.click());
-elements.confirmYes.addEventListener('click', handleConfirmYes);
-elements.confirmNo.addEventListener('click', handleConfirmNo);
-elements.addToParts.addEventListener('click', handleAddToParts);
-elements.sendMessage.addEventListener('click', handleSendMessage);
-elements.userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage();
+    // Initialize event listeners
+    if (elements.apiKey) {
+        elements.apiKey.value = state.apiKey;
+        if (state.apiKey) {
+            elements.apiStatus.textContent = '✓ API Key Saved';
+            elements.apiStatus.className = '';
+        }
     }
+
+    // Event Listeners
+    elements.saveApiKey.addEventListener('click', handleSaveApiKey);
+    elements.chatMode.addEventListener('click', () => switchMode('chat'));
+    elements.identifyMode.addEventListener('click', () => switchMode('identify'));
+    elements.imageUpload.addEventListener('change', handleImageUpload);
+    elements.captureBtn.addEventListener('click', () => elements.imageUpload.click());
+    elements.uploadBtn.addEventListener('click', () => elements.imageUpload.click());
+    elements.confirmYes.addEventListener('click', handleConfirmYes);
+    elements.confirmNo.addEventListener('click', handleConfirmNo);
+    elements.addToParts.addEventListener('click', handleAddToParts);
+    elements.sendMessage.addEventListener('click', handleSendMessage);
+    elements.userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    });
+
+    // Initialize parts table
+    updatePartsTable();
 });
+
 
 // API Key Management
 function handleSaveApiKey() {
@@ -111,7 +122,7 @@ async function analyzeImage(file) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "gpt-4-vision-preview",
+                model: "gpt-4o",
                 messages: [
                     {
                         role: "user",
@@ -226,7 +237,7 @@ async function handleSendMessage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "gpt-4",
+                model: "gpt-4o",
                 messages: [{
                     role: "system",
                     content: "You are an expert HVAC technician assistant. Provide accurate, technical, and helpful responses about HVAC systems, parts, maintenance, and troubleshooting."

@@ -13,7 +13,7 @@ A modern web application that helps HVAC technicians identify parts and get expe
 
 ## Requirements
 
-- OpenAI API Key (GPT-4 with vision access required)
+- OpenAI API Key (GPT-4o with vision access required)
 - Modern web browser
 - Internet connection
 
@@ -63,7 +63,7 @@ This application is designed to work with Cloudflare Pages:
 - HTML5
 - CSS3 with modern features (Flexbox, Grid, Custom Properties)
 - Vanilla JavaScript (ES6+)
-- OpenAI GPT-4 API
+- OpenAI GPT-4o API
 - Marked.js for Markdown rendering
 
 ## Local Development
