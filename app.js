@@ -69,8 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Initialize parts table
-    updatePartsTable();
+        // Initialize parts table
+    if (elements.partsTableBody) {
+        updatePartsTable();
+    }
 });
 
 
@@ -202,6 +204,8 @@ function handleAddToParts() {
 }
 
 function updatePartsTable() {
+    if (!elements.partsTableBody) return; // Don't update if element doesn't exist yet
+    
     elements.partsTableBody.innerHTML = state.partsList.map(part => `
         <tr>
             <td>${escapeHtml(part.name)}</td>
@@ -216,11 +220,12 @@ function updatePartsTable() {
     `).join('');
 }
 
-function deletePart(id) {
+// Make deletePart function global for onclick handlers
+window.deletePart = function(id) {
     state.partsList = state.partsList.filter(part => part.id !== id);
     localStorage.setItem(STORAGE_KEYS.PARTS_LIST, JSON.stringify(state.partsList));
     updatePartsTable();
-}
+};
 
 // Chat Functionality
 async function handleSendMessage() {
