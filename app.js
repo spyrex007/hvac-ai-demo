@@ -131,15 +131,29 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.newChatBtn.addEventListener('click', createNewChat);
     
     // Chat Mode Selector Event Listeners
-    elements.easyChatMode.addEventListener('click', () => switchChatMode('easy'));
-    elements.customChatMode.addEventListener('click', () => switchChatMode('custom'));
+    if (elements.easyChatMode) {
+        elements.easyChatMode.addEventListener('click', () => switchChatMode('easy'));
+    }
+    if (elements.customChatMode) {
+        elements.customChatMode.addEventListener('click', () => switchChatMode('custom'));
+    }
     
     // Custom Chat Settings Event Listeners
-    elements.addToSystemPrompt.addEventListener('click', addToSystemPrompt);
-    elements.replaceSystemPrompt.addEventListener('click', replaceSystemPrompt);
-    elements.temperature.addEventListener('input', updateTemperatureValue);
-    elements.maxTokens.addEventListener('change', updateMaxTokens);
-    elements.modelSelection.addEventListener('change', updateModel);
+    if (elements.addToSystemPrompt) {
+        elements.addToSystemPrompt.addEventListener('click', addToSystemPrompt);
+    }
+    if (elements.replaceSystemPrompt) {
+        elements.replaceSystemPrompt.addEventListener('click', replaceSystemPrompt);
+    }
+    if (elements.temperature) {
+        elements.temperature.addEventListener('input', updateTemperatureValue);
+    }
+    if (elements.maxTokens) {
+        elements.maxTokens.addEventListener('change', updateMaxTokens);
+    }
+    if (elements.modelSelection) {
+        elements.modelSelection.addEventListener('change', updateModel);
+    }
     
     // Initialize temperature value display
     elements.temperatureValue.textContent = elements.temperature.value;
@@ -1109,7 +1123,12 @@ function switchChatMode(mode) {
     // Update state
     state.chatMode = mode;
     
-    // Update UI
+    // Update UI - only if elements exist
+    if (!elements.easyChatMode || !elements.customChatMode || !elements.customChatSettings) {
+        console.log('Chat mode elements not found in the DOM');
+        return;
+    }
+    
     if (mode === 'easy') {
         elements.easyChatMode.classList.add('active');
         elements.customChatMode.classList.remove('active');
@@ -1143,30 +1162,43 @@ function replaceSystemPrompt() {
 }
 
 function updateTemperatureValue() {
+    if (!elements.temperature || !elements.temperatureValue) return;
     const value = elements.temperature.value;
     elements.temperatureValue.textContent = value;
     state.customChatSettings.temperature = parseFloat(value);
 }
 
 function updateMaxTokens() {
+    if (!elements.maxTokens) return;
     state.customChatSettings.maxTokens = parseInt(elements.maxTokens.value);
 }
 
 function updateModel() {
+    if (!elements.modelSelection) return;
     state.customChatSettings.model = elements.modelSelection.value;
 }
 
 // Initialize
 updatePartsTable();
 
-// Initialize chat mode based on state
-switchChatMode(state.chatMode);
-
-// Initialize custom chat settings
-elements.maxTokens.value = state.customChatSettings.maxTokens;
-elements.temperature.value = state.customChatSettings.temperature;
-elements.temperatureValue.textContent = state.customChatSettings.temperature;
-elements.modelSelection.value = state.customChatSettings.model;
+// Initialize chat mode based on state - only if elements exist
+if (elements.easyChatMode && elements.customChatMode && elements.customChatSettings) {
+    switchChatMode(state.chatMode);
+    
+    // Initialize custom chat settings
+    if (elements.maxTokens) {
+        elements.maxTokens.value = state.customChatSettings.maxTokens;
+    }
+    if (elements.temperature) {
+        elements.temperature.value = state.customChatSettings.temperature;
+    }
+    if (elements.temperatureValue) {
+        elements.temperatureValue.textContent = state.customChatSettings.temperature;
+    }
+    if (elements.modelSelection) {
+        elements.modelSelection.value = state.customChatSettings.model;
+    }
+}
 
 // Check if API key is missing and show popup if needed
 if (!state.apiKey) {
