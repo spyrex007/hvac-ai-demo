@@ -18,17 +18,33 @@
             </div>
             <div class="mode-toggle">
                 <button id="chatMode" class="mode-btn active">Chat Mode</button>
-                <button id="identifyMode" class="mode-btn">Identify Mode</button>
+                <button id="identifyMode" class="mode-btn hidden">Identify Mode</button>
             </div>
         </header>
 
         <main>
             <!-- Chat Mode Section -->
             <section id="chatSection" class="mode-section">
+                <div class="system-prompt-container">
+                    <h3>Chat System Prompt</h3>
+                    <textarea id="systemPrompt" rows="4">You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.</textarea>
+                    <div class="prompt-buttons">
+                        <button id="savePrompt">Save</button>
+                        <button id="resetPrompt">Reset</button>
+                    </div>
+                </div>
                 <div class="chat-container">
                     <div id="chatMessages" class="messages"></div>
                     <div class="input-area">
                         <textarea id="userInput" placeholder="Type your message..."></textarea>
+                        <label for="chatImageUpload" class="image-upload-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                        </label>
+                        <input type="file" id="chatImageUpload" accept="image/*" class="hidden">
                         <button id="sendMessage">Send</button>
                     </div>
                 </div>

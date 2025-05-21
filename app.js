@@ -1,14 +1,19 @@
 // Constants and State Management
 const STORAGE_KEYS = {
     API_KEY: 'hvac_ai_api_key',
-    PARTS_LIST: 'hvac_parts_list'
+    PARTS_LIST: 'hvac_parts_list',
+    SYSTEM_PROMPT: 'hvac_system_prompt'
 };
+
+const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.";
 
 const state = {
     apiKey: localStorage.getItem(STORAGE_KEYS.API_KEY) || '',
     currentMode: 'chat',
     currentImage: null,
-    partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]')
+    partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]'),
+    systemPrompt: localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT,
+    chatImageFile: null
 };
 
 // DOM Elements
@@ -39,7 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessage: document.getElementById('sendMessage'),
         chatMessages: document.getElementById('chatMessages'),
         confirmYes: document.getElementById('confirmYes'),
-        confirmNo: document.getElementById('confirmNo')
+        confirmNo: document.getElementById('confirmNo'),
+        systemPrompt: document.getElementById('systemPrompt'),
+        savePrompt: document.getElementById('savePrompt'),
+        resetPrompt: document.getElementById('resetPrompt'),
+        chatImageUpload: document.getElementById('chatImageUpload')
     };
 
     // Initialize event listeners
@@ -68,10 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSendMessage();
         }
     });
+    elements.savePrompt.addEventListener('click', handleSaveSystemPrompt);
+    elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
+    elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
 
         // Initialize parts table
     if (elements.partsTableBody) {
         updatePartsTable();
+    }
+    
+    // Initialize system prompt
+    if (elements.systemPrompt) {
+        elements.systemPrompt.value = state.systemPrompt;
     }
 });
 
@@ -227,16 +244,141 @@ window.deletePart = function(id) {
     updatePartsTable();
 };
 
+// System Prompt Management
+function handleSaveSystemPrompt() {
+    const promptText = elements.systemPrompt.value.trim();
+    if (promptText) {
+        state.systemPrompt = promptText;
+        localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, promptText);
+        // Show feedback
+        const originalBg = elements.savePrompt.style.backgroundColor;
+        elements.savePrompt.style.backgroundColor = 'var(--success-color)';
+        setTimeout(() => {
+            elements.savePrompt.style.backgroundColor = originalBg;
+        }, 1000);
+    }
+}
+
+function handleResetSystemPrompt() {
+    state.systemPrompt = DEFAULT_SYSTEM_PROMPT;
+    elements.systemPrompt.value = DEFAULT_SYSTEM_PROMPT;
+    localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT);
+    // Show feedback
+    const originalBg = elements.resetPrompt.style.backgroundColor;
+    elements.resetPrompt.style.backgroundColor = 'var(--success-color)';
+    setTimeout(() => {
+        elements.resetPrompt.style.backgroundColor = originalBg;
+    }, 1000);
+}
+
+// Chat Image Upload
+function handleChatImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        state.chatImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Create image preview
+            const imagePreview = document.createElement('div');
+            imagePreview.classList.add('chat-image-preview-container');
+            imagePreview.innerHTML = `
+                <img src="${e.target.result}" alt="Chat image" class="chat-image-preview">
+                <button class="remove-image-btn">×</button>
+            `;
+            
+            // Add to user input area
+            const inputArea = elements.userInput.parentElement;
+            // Check if there's already an image preview
+            const existingPreview = inputArea.querySelector('.chat-image-preview-container');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            inputArea.insertBefore(imagePreview, elements.userInput);
+            
+            // Add remove button functionality
+            const removeBtn = imagePreview.querySelector('.remove-image-btn');
+            removeBtn.addEventListener('click', () => {
+                imagePreview.remove();
+                state.chatImageFile = null;
+                elements.chatImageUpload.value = '';
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 // Chat Functionality
 async function handleSendMessage() {
     const message = elements.userInput.value.trim();
-    if (!message) return;
+    const hasImage = state.chatImageFile !== null;
+    
+    if (!message && !hasImage) return;
 
     // Add user message to chat
-    addMessageToChat('user', message);
-    elements.userInput.value = '';
+    if (hasImage) {
+        // Create a message with both text and image
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const imageDataUrl = e.target.result;
+            const messageContent = `
+                <div>${escapeHtml(message)}</div>
+                <img src="${imageDataUrl}" alt="User uploaded image" class="chat-image-preview">
+            `;
+            addMessageToChat('user', messageContent, true);
+            
+            // Clear input and image
+            elements.userInput.value = '';
+            const imagePreview = document.querySelector('.chat-image-preview-container');
+            if (imagePreview) imagePreview.remove();
+            
+            // Send to API
+            await sendChatRequest(message, imageDataUrl);
+        };
+        reader.readAsDataURL(state.chatImageFile);
+        state.chatImageFile = null;
+        elements.chatImageUpload.value = '';
+    } else {
+        // Text-only message
+        addMessageToChat('user', message);
+        elements.userInput.value = '';
+        await sendChatRequest(message);
+    }
+}
 
+async function sendChatRequest(message, imageDataUrl = null) {
     try {
+        let messages = [
+            {
+                role: "system",
+                content: state.systemPrompt
+            }
+        ];
+        
+        if (imageDataUrl) {
+            // Format message with image for GPT-4o
+            messages.push({
+                role: "user",
+                content: [
+                    {
+                        type: "text",
+                        text: message || "What can you tell me about this HVAC component?"
+                    },
+                    {
+                        type: "image_url",
+                        image_url: {
+                            url: imageDataUrl
+                        }
+                    }
+                ]
+            });
+        } else {
+            // Text-only message
+            messages.push({
+                role: "user",
+                content: message
+            });
+        }
+        
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -245,13 +387,7 @@ async function handleSendMessage() {
             },
             body: JSON.stringify({
                 model: "gpt-4o",
-                messages: [{
-                    role: "system",
-                    content: "You are an expert HVAC technician assistant. Provide accurate, technical, and helpful responses about HVAC systems, parts, maintenance, and troubleshooting."
-                }, {
-                    role: "user",
-                    content: message
-                }],
+                messages: messages,
                 max_tokens: 500
             })
         });
@@ -269,10 +405,17 @@ async function handleSendMessage() {
     }
 }
 
-function addMessageToChat(role, content) {
+function addMessageToChat(role, content, isHtml = false) {
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${role}-message`;
-    messageDiv.innerHTML = marked.parse(content);
+    messageDiv.classList.add('message');
+    messageDiv.classList.add(`${role}-message`);
+    
+    if (isHtml) {
+        messageDiv.innerHTML = content;
+    } else {
+        messageDiv.innerHTML = role === 'user' ? escapeHtml(content) : marked.parse(content);
+    }
+    
     elements.chatMessages.appendChild(messageDiv);
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
 }
