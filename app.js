@@ -1018,5 +1018,63 @@ function applyTheme(theme) {
     }
 }
 
+// Function to show API key required popup
+function showApiKeyRequiredPopup() {
+    // Create popup container
+    const popupContainer = document.createElement('div');
+    popupContainer.className = 'api-key-popup';
+    
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.className = 'api-key-popup-content';
+    
+    // Add header
+    const header = document.createElement('h3');
+    header.textContent = 'API Key Required';
+    
+    // Add message
+    const message = document.createElement('p');
+    message.textContent = 'An OpenAI API key is required to use this application. Please enter your API key in the Settings to continue.';
+    
+    // Add button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'api-key-popup-buttons';
+    
+    // Add settings button
+    const settingsButton = document.createElement('button');
+    settingsButton.textContent = 'Open Settings';
+    settingsButton.className = 'primary-button';
+    settingsButton.onclick = () => {
+        popupContainer.remove();
+        openSettingsModal();
+    };
+    
+    // Add okay button
+    const okayButton = document.createElement('button');
+    okayButton.textContent = 'Okay';
+    okayButton.onclick = () => {
+        popupContainer.remove();
+    };
+    
+    // Assemble the popup
+    buttonContainer.appendChild(settingsButton);
+    buttonContainer.appendChild(okayButton);
+    
+    popupContent.appendChild(header);
+    popupContent.appendChild(message);
+    popupContent.appendChild(buttonContainer);
+    
+    popupContainer.appendChild(popupContent);
+    
+    // Add to the document
+    document.body.appendChild(popupContainer);
+}
+
 // Initialize
 updatePartsTable();
+
+// Check if API key is missing and show popup if needed
+if (!state.apiKey) {
+    // Use a small timeout to ensure the DOM is fully loaded
+    setTimeout(showApiKeyRequiredPopup, 500);
+}
