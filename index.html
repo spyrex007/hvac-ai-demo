@@ -40,8 +40,16 @@
                             <div class="prompt-actions">
                                 <button id="addToSystemPrompt" class="small-btn">Add</button>
                                 <button id="replaceSystemPrompt" class="small-btn">Replace</button>
+                                <button id="displaySystemPrompt" class="small-btn">Display</button>
                             </div>
                             <textarea id="customSystemPrompt" rows="2" placeholder="Enter additional system instructions..."></textarea>
+                            <div id="systemPromptPreview" class="system-prompt-preview hidden">
+                                <div class="preview-header">
+                                    <span>Current System Prompt:</span>
+                                    <button id="resetSystemPromptCustom" class="small-btn">Reset</button>
+                                </div>
+                                <div id="systemPromptContent" class="system-prompt-content"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="settings-row">
@@ -61,6 +69,9 @@
                                 <option value="gpt-4.1">GPT-4.1</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="settings-row custom-settings-actions">
+                        <button id="resetCustomSettings" class="small-btn">♻️ Reset Custom Settings</button>
                     </div>
                 </div>
                 

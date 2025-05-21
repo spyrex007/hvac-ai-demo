@@ -7,7 +7,9 @@ const STORAGE_KEYS = {
     ACTIVE_CHAT_ID: 'hvac_active_chat_id',
     THEME: 'hvac_theme',
     DELETED_CHATS: 'hvac_deleted_chats',
-    DELETED_CHATS_MAX: 'hvac_deleted_chats_max'
+    DELETED_CHATS_MAX: 'hvac_deleted_chats_max',
+    CHAT_MODE: 'hvac_chat_mode',
+    CUSTOM_CHAT_SETTINGS: 'hvac_custom_chat_settings'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions. If images are provided, look at the specific model numbers, manufacturers, and more to determine differences between brands and such. Specifically call out differences and model numbers of brands, specifications, and such from images and text.";
@@ -27,12 +29,8 @@ const state = {
     deletedChats: JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS) || '[]'),
     deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
     // Custom chat settings
-    chatMode: 'easy', // 'easy' or 'custom'
-    customChatSettings: {
-        maxTokens: 2000,
-        temperature: 0.7,
-        model: 'gpt-4o'
-    }
+    chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy' or 'custom'
+    customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4o"}')
 };
 
 // DOM Elements
@@ -77,6 +75,11 @@ document.addEventListener('DOMContentLoaded', () => {
         customSystemPrompt: document.getElementById('customSystemPrompt'),
         addToSystemPrompt: document.getElementById('addToSystemPrompt'),
         replaceSystemPrompt: document.getElementById('replaceSystemPrompt'),
+        displaySystemPrompt: document.getElementById('displaySystemPrompt'),
+        systemPromptPreview: document.getElementById('systemPromptPreview'),
+        systemPromptContent: document.getElementById('systemPromptContent'),
+        resetSystemPromptCustom: document.getElementById('resetSystemPromptCustom'),
+        resetCustomSettings: document.getElementById('resetCustomSettings'),
         maxTokens: document.getElementById('maxTokens'),
         temperature: document.getElementById('temperature'),
         temperatureValue: document.getElementById('temperatureValue'),
@@ -190,6 +193,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (elements.replaceSystemPrompt) {
         elements.replaceSystemPrompt.addEventListener('click', replaceSystemPrompt);
+    }
+    if (elements.displaySystemPrompt) {
+        elements.displaySystemPrompt.addEventListener('click', toggleSystemPromptDisplay);
+    }
+    if (elements.resetSystemPromptCustom) {
+        elements.resetSystemPromptCustom.addEventListener('click', resetSystemPromptToDefault);
+    }
+    if (elements.resetCustomSettings) {
+        elements.resetCustomSettings.addEventListener('click', resetAllCustomSettings);
     }
     if (elements.temperature) {
         elements.temperature.addEventListener('input', updateTemperatureValue);
@@ -1240,6 +1252,9 @@ function switchChatMode(mode) {
     // Update state
     state.chatMode = mode;
     
+    // Save to localStorage
+    localStorage.setItem(STORAGE_KEYS.CHAT_MODE, mode);
+    
     // Update UI - only if elements exist
     if (!elements.easyChatMode || !elements.customChatMode || !elements.customChatSettings) {
         console.log('Chat mode elements not found in the DOM');
@@ -1287,16 +1302,87 @@ function updateTemperatureValue() {
     const value = elements.temperature.value;
     elements.temperatureValue.textContent = value;
     state.customChatSettings.temperature = parseFloat(value);
+    
+    // Save to localStorage
+    saveCustomChatSettings();
 }
 
 function updateMaxTokens() {
     if (!elements.maxTokens) return;
     state.customChatSettings.maxTokens = parseInt(elements.maxTokens.value);
+    
+    // Save to localStorage
+    saveCustomChatSettings();
 }
 
 function updateModel() {
     if (!elements.modelSelection) return;
     state.customChatSettings.model = elements.modelSelection.value;
+    
+    // Save to localStorage
+    saveCustomChatSettings();
+}
+
+// Function to toggle system prompt display
+function toggleSystemPromptDisplay() {
+    if (!elements.systemPromptPreview || !elements.displaySystemPrompt || !elements.systemPromptContent) return;
+    
+    const isHidden = elements.systemPromptPreview.classList.contains('hidden');
+    
+    if (isHidden) {
+        // Show the system prompt preview
+        elements.systemPromptPreview.classList.remove('hidden');
+        elements.displaySystemPrompt.textContent = 'Hide';
+        elements.systemPromptContent.textContent = state.systemPrompt;
+    } else {
+        // Hide the system prompt preview
+        elements.systemPromptPreview.classList.add('hidden');
+        elements.displaySystemPrompt.textContent = 'Display';
+    }
+}
+
+// Function to reset system prompt to default
+function resetSystemPromptToDefault() {
+    if (!elements.systemPrompt || !elements.systemPromptContent) return;
+    
+    state.systemPrompt = localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT;
+    elements.systemPrompt.value = state.systemPrompt;
+    
+    // Update the preview if it's visible
+    if (elements.systemPromptPreview && !elements.systemPromptPreview.classList.contains('hidden')) {
+        elements.systemPromptContent.textContent = state.systemPrompt;
+    }
+}
+
+// Function to reset all custom settings
+function resetAllCustomSettings() {
+    // Reset max tokens
+    if (elements.maxTokens) {
+        elements.maxTokens.value = 2000;
+        state.customChatSettings.maxTokens = 2000;
+    }
+    
+    // Reset temperature
+    if (elements.temperature && elements.temperatureValue) {
+        elements.temperature.value = 0.7;
+        elements.temperatureValue.textContent = 0.7;
+        state.customChatSettings.temperature = 0.7;
+    }
+    
+    // Reset model
+    if (elements.modelSelection) {
+        elements.modelSelection.value = 'gpt-4o';
+        state.customChatSettings.model = 'gpt-4o';
+    }
+    
+    // Save to localStorage
+    saveCustomChatSettings();
+}
+
+// Function to save custom chat settings to localStorage
+function saveCustomChatSettings() {
+    localStorage.setItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS, JSON.stringify(state.customChatSettings));
+    console.log('Custom chat settings saved:', state.customChatSettings);
 }
 
 // Initialize
@@ -1306,14 +1392,12 @@ updatePartsTable();
 if (elements.easyChatMode && elements.customChatMode && elements.customChatSettings) {
     switchChatMode(state.chatMode);
     
-    // Initialize custom chat settings
+    // Initialize custom chat settings UI
     if (elements.maxTokens) {
         elements.maxTokens.value = state.customChatSettings.maxTokens;
     }
-    if (elements.temperature) {
+    if (elements.temperature && elements.temperatureValue) {
         elements.temperature.value = state.customChatSettings.temperature;
-    }
-    if (elements.temperatureValue) {
         elements.temperatureValue.textContent = state.customChatSettings.temperature;
     }
     if (elements.modelSelection) {
