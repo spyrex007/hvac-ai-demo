@@ -146,6 +146,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleSendMessage();
             }
         });
+        
+        // Add paste event listener for clipboard images
+        elements.userInput.addEventListener('paste', handlePaste);
+        
+        // Add drag and drop event listeners
+        elements.userInput.addEventListener('dragover', handleDragOver);
+        elements.userInput.addEventListener('dragleave', handleDragLeave);
+        elements.userInput.addEventListener('drop', handleDrop);
+    }
+    
+    // Add global drag and drop event listeners to the chat container
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+        chatContainer.addEventListener('dragover', handleDragOver);
+        chatContainer.addEventListener('dragleave', handleDragLeave);
+        chatContainer.addEventListener('drop', handleDrop);
     }
     if (elements.savePrompt) {
         elements.savePrompt.addEventListener('click', handleSaveSystemPrompt);
@@ -417,35 +433,106 @@ function handleResetSystemPrompt() {
 function handleChatImageUpload(event) {
     const file = event.target.files[0];
     if (file) {
-        state.chatImageFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            // Create image preview
-            const imagePreview = document.createElement('div');
-            imagePreview.classList.add('chat-image-preview-container');
-            imagePreview.innerHTML = `
-                <img src="${e.target.result}" alt="Chat image" class="chat-image-preview">
-                <button class="remove-image-btn">×</button>
-            `;
-            
-            // Add to user input area
-            const inputArea = elements.userInput.parentElement;
-            // Check if there's already an image preview
-            const existingPreview = inputArea.querySelector('.chat-image-preview-container');
-            if (existingPreview) {
-                existingPreview.remove();
-            }
-            inputArea.insertBefore(imagePreview, elements.userInput);
-            
-            // Add remove button functionality
-            const removeBtn = imagePreview.querySelector('.remove-image-btn');
-            removeBtn.addEventListener('click', () => {
-                imagePreview.remove();
-                state.chatImageFile = null;
+        processImageFile(file);
+    }
+}
+
+// Process image file (used by upload, paste, and drag-drop)
+function processImageFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    
+    state.chatImageFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        // Create image preview
+        const imagePreview = document.createElement('div');
+        imagePreview.classList.add('chat-image-preview-container');
+        imagePreview.innerHTML = `
+            <img src="${e.target.result}" alt="Chat image" class="chat-image-preview">
+            <button class="remove-image-btn">×</button>
+        `;
+        
+        // Add to user input area
+        const inputArea = elements.userInput.parentElement;
+        // Check if there's already an image preview
+        const existingPreview = inputArea.querySelector('.chat-image-preview-container');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        inputArea.insertBefore(imagePreview, elements.userInput);
+        
+        // Add remove button functionality
+        const removeBtn = imagePreview.querySelector('.remove-image-btn');
+        removeBtn.addEventListener('click', () => {
+            imagePreview.remove();
+            state.chatImageFile = null;
+            if (elements.chatImageUpload) {
                 elements.chatImageUpload.value = '';
-            });
-        };
-        reader.readAsDataURL(file);
+            }
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+// Handle paste event for clipboard images
+function handlePaste(e) {
+    const clipboardData = e.clipboardData || window.clipboardData;
+    if (!clipboardData) return;
+    
+    // Check if there are any items in the clipboard
+    const items = clipboardData.items;
+    if (!items) return;
+    
+    // Look for an image in the clipboard items
+    for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+            // We found an image
+            const file = items[i].getAsFile();
+            processImageFile(file);
+            
+            // Prevent the default paste action
+            e.preventDefault();
+            return;
+        }
+    }
+}
+
+// Handle drag over event
+function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Add a visual indicator that we're in drag mode
+    if (e.currentTarget.classList.contains('input-area') || 
+        e.currentTarget.classList.contains('chat-container') ||
+        e.currentTarget.id === 'userInput') {
+        document.querySelector('.chat-container').classList.add('drag-over');
+    }
+}
+
+// Handle drag leave event
+function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove the visual indicator
+    document.querySelector('.chat-container').classList.remove('drag-over');
+}
+
+// Handle drop event
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove the visual indicator
+    document.querySelector('.chat-container').classList.remove('drag-over');
+    
+    // Check if the dataTransfer object has files
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type.startsWith('image/')) {
+            processImageFile(file);
+        }
     }
 }
 
