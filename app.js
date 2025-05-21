@@ -689,6 +689,7 @@ async function handleSendMessage() {
 
 async function sendChatRequest(message, imageDataUrl = null) {
     try {
+        // Start with system prompt
         let messages = [
             {
                 role: "system",
@@ -696,6 +697,62 @@ async function sendChatRequest(message, imageDataUrl = null) {
             }
         ];
         
+        // Add conversation history if we have an active chat
+        if (state.activeChatId) {
+            const chatIndex = state.chats.findIndex(chat => chat.id === state.activeChatId);
+            if (chatIndex !== -1) {
+                // Get previous messages from this chat
+                const previousMessages = state.chats[chatIndex].messages;
+                
+                // Add previous messages to the context (up to a reasonable limit)
+                const maxPreviousMessages = 10; // Adjust as needed
+                const startIndex = Math.max(0, previousMessages.length - maxPreviousMessages);
+                
+                for (let i = startIndex; i < previousMessages.length; i++) {
+                    const prevMsg = previousMessages[i];
+                    
+                    // Skip adding the current message
+                    if (i === previousMessages.length - 1 && prevMsg.role === 'user') {
+                        continue;
+                    }
+                    
+                    // Convert HTML content to plain text or structured content
+                    if (prevMsg.isHtml) {
+                        // Check if it contains an image
+                        const imgMatch = prevMsg.content.match(/<img src="(data:image\/[^;]+;base64,[^"]+)"/);
+                        
+                        if (imgMatch && imgMatch[1]) {
+                            // This was a message with an image
+                            const imgDataUrl = imgMatch[1];
+                            const textContent = prevMsg.content.replace(/<[^>]*>/g, '').trim();
+                            
+                            messages.push({
+                                role: prevMsg.role,
+                                content: [
+                                    { type: "text", text: textContent || "What can you tell me about this HVAC component?" },
+                                    { type: "image_url", image_url: { url: imgDataUrl } }
+                                ]
+                            });
+                        } else {
+                            // HTML without image, convert to plain text
+                            const textContent = prevMsg.content.replace(/<[^>]*>/g, '').trim();
+                            messages.push({
+                                role: prevMsg.role,
+                                content: textContent
+                            });
+                        }
+                    } else {
+                        // Regular text message
+                        messages.push({
+                            role: prevMsg.role,
+                            content: prevMsg.content
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Add the current message
         if (imageDataUrl) {
             // Format message with image for GPT-4o
             messages.push({
