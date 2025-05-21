@@ -108,27 +108,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Event Listeners
-    elements.saveApiKey.addEventListener('click', handleSaveApiKey);
-    elements.chatMode.addEventListener('click', () => switchMode('chat'));
-    elements.identifyMode.addEventListener('click', () => switchMode('identify'));
-    elements.imageUpload.addEventListener('change', handleImageUpload);
-    elements.captureBtn.addEventListener('click', () => elements.imageUpload.click());
-    elements.uploadBtn.addEventListener('click', () => elements.imageUpload.click());
-    elements.confirmYes.addEventListener('click', handleConfirmYes);
-    elements.confirmNo.addEventListener('click', handleConfirmNo);
-    elements.addToParts.addEventListener('click', handleAddToParts);
-    elements.sendMessage.addEventListener('click', handleSendMessage);
-    elements.userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    });
-    elements.savePrompt.addEventListener('click', handleSaveSystemPrompt);
-    elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
-    elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
-    elements.newChatBtn.addEventListener('click', createNewChat);
+    // Event Listeners - add null checks for all elements
+    if (elements.saveApiKey) {
+        elements.saveApiKey.addEventListener('click', handleSaveApiKey);
+    }
+    if (elements.chatMode) {
+        elements.chatMode.addEventListener('click', () => switchMode('chat'));
+    }
+    if (elements.identifyMode) {
+        elements.identifyMode.addEventListener('click', () => switchMode('identify'));
+    }
+    if (elements.imageUpload) {
+        elements.imageUpload.addEventListener('change', handleImageUpload);
+    }
+    if (elements.captureBtn) {
+        elements.captureBtn.addEventListener('click', () => elements.imageUpload && elements.imageUpload.click());
+    }
+    if (elements.uploadBtn) {
+        elements.uploadBtn.addEventListener('click', () => elements.imageUpload && elements.imageUpload.click());
+    }
+    if (elements.confirmYes) {
+        elements.confirmYes.addEventListener('click', handleConfirmYes);
+    }
+    if (elements.confirmNo) {
+        elements.confirmNo.addEventListener('click', handleConfirmNo);
+    }
+    if (elements.addToParts) {
+        elements.addToParts.addEventListener('click', handleAddToParts);
+    }
+    if (elements.sendMessage) {
+        elements.sendMessage.addEventListener('click', handleSendMessage);
+    }
+    if (elements.userInput) {
+        elements.userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+            }
+        });
+    }
+    if (elements.savePrompt) {
+        elements.savePrompt.addEventListener('click', handleSaveSystemPrompt);
+    }
+    if (elements.resetPrompt) {
+        elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
+    }
+    if (elements.chatImageUpload) {
+        elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
+    }
+    if (elements.newChatBtn) {
+        elements.newChatBtn.addEventListener('click', createNewChat);
+    }
     
     // Chat Mode Selector Event Listeners
     if (elements.easyChatMode) {
@@ -1142,6 +1172,8 @@ function switchChatMode(mode) {
 
 // Custom Chat Settings Functions
 function addToSystemPrompt() {
+    if (!elements.customSystemPrompt || !elements.systemPrompt) return;
+    
     const additionalPrompt = elements.customSystemPrompt.value.trim();
     if (additionalPrompt) {
         state.systemPrompt = `${state.systemPrompt}\n\n${additionalPrompt}`;
@@ -1152,6 +1184,8 @@ function addToSystemPrompt() {
 }
 
 function replaceSystemPrompt() {
+    if (!elements.customSystemPrompt || !elements.systemPrompt) return;
+    
     const newPrompt = elements.customSystemPrompt.value.trim();
     if (newPrompt) {
         state.systemPrompt = newPrompt;
