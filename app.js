@@ -850,11 +850,11 @@ async function sendChatRequest(message, imageDataUrl = null) {
         }
 
         const aiResponse = data.choices[0].message.content;
-        addMessageToChat('ai', aiResponse);
+        addMessageToChat('assistant', aiResponse);
         
     } catch (error) {
         console.error('Error in sendChatRequest:', error);
-        addMessageToChat('ai', `Error: ${error.message}. Please check the console for more details.`);
+        addMessageToChat('assistant', `Error: ${error.message}. Please check the console for more details.`);
     }
 }
 
