@@ -1133,11 +1133,24 @@ function addMessageToChat(role, content, isHtml = false) {
             
             // Update chat title if it's the first user message
             if (role === 'user' && state.chats[chatIndex].messages.filter(m => m.role === 'user').length === 1) {
-                // Use first few words of first message as title
-                const plainTextContent = isHtml ? 
-                    content.replace(/<[^>]*>/g, '') : content;
-                const words = plainTextContent.split(' ');
-                const title = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+                let title;
+                
+                if (isHtml) {
+                    // Check if it's only an image message
+                    const textContent = content.replace(/<img[^>]*>/g, '').replace(/<[^>]*>/g, '').trim();
+                    
+                    if (!textContent && content.includes('<img')) {
+                        // It's only an image
+                        title = 'Image';
+                    } else {
+                        // Extract the first 10 characters of text
+                        title = textContent.substring(0, 10) + (textContent.length > 10 ? '...' : '');
+                    }
+                } else {
+                    // Plain text message - get first 10 characters
+                    title = content.substring(0, 10) + (content.length > 10 ? '...' : '');
+                }
+                
                 state.chats[chatIndex].title = title;
                 updateChatTabs();
             }
