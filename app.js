@@ -10,7 +10,7 @@ const STORAGE_KEYS = {
     DELETED_CHATS_MAX: 'hvac_deleted_chats_max'
 };
 
-const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions.";
+const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions. If images are provided, look at the specific model numbers, manufacturers, and more to determine differences between brands and such. Specifically call out differences and model numbers of brands, specifications, and such from images and text.";
 
 const DEFAULT_DELETED_CHATS_MAX = 5;
 
@@ -226,7 +226,7 @@ async function analyzeImage(file) {
                         ]
                     }
                 ],
-                max_tokens: 500
+                max_tokens: 2000
             })
         });
 
@@ -806,7 +806,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
             body: JSON.stringify({
                 model: "gpt-4o",
                 messages: messages,
-                max_tokens: 500
+                max_tokens: 2000
             })
         });
         
