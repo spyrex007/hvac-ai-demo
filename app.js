@@ -789,12 +789,15 @@ async function sendChatRequest(message, imageDataUrl = null) {
             });
         }
         
-        // Try different approaches to handle the API request
-        let response;
-        let error;
+        // Use Cloudflare Worker as a proxy to handle CORS issues
+        // The worker handles the OpenAI API request and adds proper CORS headers
         
-        // Prepare the request payload
-        const requestPayload = {
+        // Replace this URL with your deployed Cloudflare Worker URL
+        const cloudflareWorkerUrl = 'https://openai-proxy-worker.your-subdomain.workers.dev';
+        
+        console.log('Sending request to Cloudflare Worker proxy');
+        
+        const response = await fetch(cloudflareWorkerUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${state.apiKey}`,
@@ -805,57 +808,12 @@ async function sendChatRequest(message, imageDataUrl = null) {
                 messages: messages,
                 max_tokens: 500
             })
-        };
+        });
         
-        // Option 1: Try direct request first (will work if CORS is properly configured or if running locally)
-        try {
-            const directUrl = 'https://api.openai.com/v1/chat/completions';
-            response = await fetch(directUrl, requestPayload);
-            if (response.ok) {
-                console.log('Direct API request succeeded');
-            }
-        } catch (e) {
-            console.log('Direct API request failed, trying proxy:', e);
-            error = e;
-        }
-        
-        // Option 2: If direct request failed, try with a CORS proxy
-        if (!response || !response.ok) {
-            try {
-                // Try a different CORS proxy service
-                const corsProxies = [
-                    'https://corsproxy.io/?',
-                    'https://api.allorigins.win/raw?url=',
-                    'https://cors-anywhere.herokuapp.com/'
-                ];
-                
-                // Try each proxy until one works
-                for (const proxy of corsProxies) {
-                    if (response && response.ok) break;
-                    
-                    try {
-                        const targetUrl = 'https://api.openai.com/v1/chat/completions';
-                        const proxyUrl = proxy + encodeURIComponent(targetUrl);
-                        
-                        response = await fetch(proxyUrl, requestPayload);
-                        if (response.ok) {
-                            console.log('Proxy API request succeeded with:', proxy);
-                            break;
-                        }
-                    } catch (e) {
-                        console.log(`Proxy ${proxy} failed:`, e);
-                        error = e;
-                    }
-                }
-            } catch (e) {
-                console.error('All proxy attempts failed:', e);
-                error = e;
-            }
-        }
-        
-        // If all attempts failed, throw the last error
-        if (!response || !response.ok) {
-            throw error || new Error('All API request attempts failed');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Cloudflare Worker Error:', errorText);
+            throw new Error(`Request failed with status ${response.status}: ${errorText}`);
         }
 
         // Log the response status for debugging
