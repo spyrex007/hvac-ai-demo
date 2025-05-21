@@ -11,8 +11,8 @@
     --error-color: #ef4444;
     --user-message-bg: #2563eb;
     --user-message-color: #ffffff;
-    --ai-message-bg: #f1f5f9;
-    --ai-message-color: #1e293b;
+    --assistant-message-bg: #f1f5f9;
+    --assistant-message-color: #1e293b;
     --button-hover: #1e40af;
     --header-bg: linear-gradient(135deg, #2563eb, #1e40af);
 }
@@ -28,8 +28,8 @@
     --border-color: #bae6fd;
     --user-message-bg: #0ea5e9;
     --user-message-color: #ffffff;
-    --ai-message-bg: #e0f2fe;
-    --ai-message-color: #0c4a6e;
+    --assistant-message-bg: #e0f2fe;
+    --assistant-message-color: #0c4a6e;
     --button-hover: #0369a1;
     --header-bg: linear-gradient(135deg, #0ea5e9, #0369a1);
 }
@@ -45,8 +45,8 @@
     --border-color: #a7f3d0;
     --user-message-bg: #10b981;
     --user-message-color: #ffffff;
-    --ai-message-bg: #d1fae5;
-    --ai-message-color: #064e3b;
+    --assistant-message-bg: #d1fae5;
+    --assistant-message-color: #064e3b;
     --button-hover: #047857;
     --header-bg: linear-gradient(135deg, #10b981, #047857);
 }
@@ -62,8 +62,8 @@
     --border-color: #ddd6fe;
     --user-message-bg: #8b5cf6;
     --user-message-color: #ffffff;
-    --ai-message-bg: #ede9fe;
-    --ai-message-color: #4c1d95;
+    --assistant-message-bg: #ede9fe;
+    --assistant-message-color: #4c1d95;
     --button-hover: #6d28d9;
     --header-bg: linear-gradient(135deg, #8b5cf6, #6d28d9);
 }
@@ -79,8 +79,8 @@
     --border-color: #fed7aa;
     --user-message-bg: #f97316;
     --user-message-color: #ffffff;
-    --ai-message-bg: #ffedd5;
-    --ai-message-color: #7c2d12;
+    --assistant-message-bg: #ffedd5;
+    --assistant-message-color: #7c2d12;
     --button-hover: #c2410c;
     --header-bg: linear-gradient(135deg, #f97316, #c2410c);
 }
@@ -212,9 +212,9 @@ button:hover {
     border-radius: 0.75rem 0.75rem 0 0.75rem;
 }
 
-.ai-message {
-    background-color: var(--ai-message-bg);
-    color: var(--ai-message-color);
+.assistant-message {
+    background-color: var(--assistant-message-bg);
+    color: var(--assistant-message-color);
     margin-right: 2rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     border-radius: 0.75rem 0.75rem 0.75rem 0;
