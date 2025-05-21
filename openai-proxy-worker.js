@@ -57,6 +57,8 @@ async function handleRequest(request) {
     // Clone the request to modify it
     const requestBody = await request.json();
     
+    console.log('Received request body:', JSON.stringify(requestBody).substring(0, 200) + '...');
+    
     // Forward the request to OpenAI
     const openaiResponse = await fetch(OPENAI_API_URL, {
       method: 'POST',
@@ -67,10 +69,21 @@ async function handleRequest(request) {
       body: JSON.stringify(requestBody)
     });
     
-    // Get the response from OpenAI
-    const data = await openaiResponse.json();
+    console.log('OpenAI API response status:', openaiResponse.status);
     
-    // Return the response with CORS headers
+    // Get the response content
+    const responseText = await openaiResponse.text();
+    
+    // Try to parse as JSON, but handle case where it's not valid JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse OpenAI response as JSON:', responseText.substring(0, 200));
+      data = { error: { message: 'Invalid response from OpenAI API' } };
+    }
+    
+    // Always pass through the original status code from OpenAI
     return new Response(
       JSON.stringify(data),
       {
@@ -82,9 +95,16 @@ async function handleRequest(request) {
       }
     );
   } catch (error) {
-    // Handle errors
+    // Handle errors in our worker
+    console.error('Worker error:', error.message);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: {
+          message: `Worker error: ${error.message}`,
+          type: 'worker_error'
+        }
+      }),
       {
         status: 500,
         headers: {

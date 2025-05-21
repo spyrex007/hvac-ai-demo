@@ -811,9 +811,25 @@ async function sendChatRequest(message, imageDataUrl = null) {
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Cloudflare Worker Error:', errorText);
-            throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+            let errorMessage = 'Unknown error occurred';
+            try {
+                const errorData = await response.json();
+                console.error('API Error Response:', errorData);
+                
+                // Handle OpenAI-specific error format
+                if (errorData.error && errorData.error.message) {
+                    errorMessage = errorData.error.message;
+                } else {
+                    errorMessage = JSON.stringify(errorData);
+                }
+            } catch (e) {
+                // If response is not JSON, get it as text
+                const errorText = await response.text();
+                console.error('Non-JSON Error Response:', errorText);
+                errorMessage = errorText || `Request failed with status ${response.status}`;
+            }
+            
+            throw new Error(errorMessage);
         }
 
         // Log the response status for debugging
