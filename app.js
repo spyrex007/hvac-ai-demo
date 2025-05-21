@@ -9,12 +9,13 @@ const STORAGE_KEYS = {
     DELETED_CHATS: 'hvac_deleted_chats',
     DELETED_CHATS_MAX: 'hvac_deleted_chats_max',
     CHAT_MODE: 'hvac_chat_mode',
-    CUSTOM_CHAT_SETTINGS: 'hvac_custom_chat_settings'
+    CUSTOM_CHAT_SETTINGS: 'hvac_custom_chat_settings',
+    CUSTOM_SYSTEM_PROMPT: 'hvac_custom_system_prompt'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions. If images are provided, look at the specific model numbers, manufacturers, and more to determine differences between brands and such. Specifically call out differences and model numbers of brands, specifications, and such from images and text.";
 
-const DEFAULT_DELETED_CHATS_MAX = 5;
+const DEFAULT_DELETED_CHATS_MAX = 2;
 
 const state = {
     apiKey: localStorage.getItem(STORAGE_KEYS.API_KEY) || '',
@@ -22,6 +23,7 @@ const state = {
     currentImage: null,
     partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]'),
     systemPrompt: localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT,
+    customSystemPrompt: localStorage.getItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT) || '',
     chatImageFile: null,
     chats: JSON.parse(localStorage.getItem(STORAGE_KEYS.CHATS) || '[]'),
     activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
@@ -927,11 +929,15 @@ async function handleSendMessage() {
 
 async function sendChatRequest(message, imageDataUrl = null) {
     try {
+        // Choose the appropriate system prompt based on chat mode
+        const promptToUse = (state.chatMode === 'custom' && state.customSystemPrompt) ? 
+                           state.customSystemPrompt : state.systemPrompt;
+        
         // Start with system prompt
         let messages = [
             {
                 role: "system",
-                content: state.systemPrompt
+                content: promptToUse
             }
         ];
         
@@ -1274,26 +1280,37 @@ function switchChatMode(mode) {
 
 // Custom Chat Settings Functions
 function addToSystemPrompt() {
-    if (!elements.customSystemPrompt || !elements.systemPrompt) return;
+    if (!elements.customSystemPrompt) return;
     
     const additionalPrompt = elements.customSystemPrompt.value.trim();
     if (additionalPrompt) {
-        state.systemPrompt = `${state.systemPrompt}\n\n${additionalPrompt}`;
-        elements.systemPrompt.value = state.systemPrompt;
-        localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, state.systemPrompt);
+        // If there's no custom system prompt yet, use the default one as a base
+        if (!state.customSystemPrompt) {
+            state.customSystemPrompt = state.systemPrompt;
+        }
+        
+        // Add to the custom system prompt
+        state.customSystemPrompt = `${state.customSystemPrompt}\n\n${additionalPrompt}`;
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
         elements.customSystemPrompt.value = '';
+        
+        // Update the preview if it's visible
+        updateSystemPromptPreview();
     }
 }
 
 function replaceSystemPrompt() {
-    if (!elements.customSystemPrompt || !elements.systemPrompt) return;
+    if (!elements.customSystemPrompt) return;
     
     const newPrompt = elements.customSystemPrompt.value.trim();
     if (newPrompt) {
-        state.systemPrompt = newPrompt;
-        elements.systemPrompt.value = state.systemPrompt;
-        localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, state.systemPrompt);
+        // Replace the custom system prompt only
+        state.customSystemPrompt = newPrompt;
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
         elements.customSystemPrompt.value = '';
+        
+        // Update the preview if it's visible
+        updateSystemPromptPreview();
     }
 }
 
@@ -1333,7 +1350,7 @@ function toggleSystemPromptDisplay() {
         // Show the system prompt preview
         elements.systemPromptPreview.classList.remove('hidden');
         elements.displaySystemPrompt.textContent = 'Hide';
-        elements.systemPromptContent.textContent = state.systemPrompt;
+        updateSystemPromptPreview();
     } else {
         // Hide the system prompt preview
         elements.systemPromptPreview.classList.add('hidden');
@@ -1341,16 +1358,24 @@ function toggleSystemPromptDisplay() {
     }
 }
 
+// Function to update the system prompt preview content
+function updateSystemPromptPreview() {
+    if (!elements.systemPromptContent) return;
+    
+    // Show the appropriate system prompt based on whether a custom one exists
+    const promptToShow = state.customSystemPrompt || state.systemPrompt;
+    elements.systemPromptContent.textContent = promptToShow;
+}
+
 // Function to reset system prompt to default
 function resetSystemPromptToDefault() {
-    if (!elements.systemPrompt || !elements.systemPromptContent) return;
-    
-    state.systemPrompt = localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT;
-    elements.systemPrompt.value = state.systemPrompt;
+    // Clear the custom system prompt
+    state.customSystemPrompt = '';
+    localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
     
     // Update the preview if it's visible
     if (elements.systemPromptPreview && !elements.systemPromptPreview.classList.contains('hidden')) {
-        elements.systemPromptContent.textContent = state.systemPrompt;
+        updateSystemPromptPreview();
     }
 }
 
@@ -1373,6 +1398,15 @@ function resetAllCustomSettings() {
     if (elements.modelSelection) {
         elements.modelSelection.value = 'gpt-4o';
         state.customChatSettings.model = 'gpt-4o';
+    }
+    
+    // Reset custom system prompt
+    state.customSystemPrompt = '';
+    localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
+    
+    // Update the preview if it's visible
+    if (elements.systemPromptPreview && !elements.systemPromptPreview.classList.contains('hidden')) {
+        updateSystemPromptPreview();
     }
     
     // Save to localStorage
