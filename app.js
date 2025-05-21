@@ -10,7 +10,8 @@ const STORAGE_KEYS = {
     DELETED_CHATS_MAX: 'hvac_deleted_chats_max',
     CHAT_MODE: 'hvac_chat_mode',
     CUSTOM_CHAT_SETTINGS: 'hvac_custom_chat_settings',
-    CUSTOM_SYSTEM_PROMPT: 'hvac_custom_system_prompt'
+    CUSTOM_SYSTEM_PROMPT: 'hvac_custom_system_prompt',
+    SELECTED_PRESET: 'hvac_selected_preset'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions. If images are provided, look at the specific model numbers, manufacturers, and more to determine differences between brands and such. Specifically call out differences and model numbers of brands, specifications, and such from images and text.";
@@ -32,11 +33,25 @@ const state = {
     deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
     // Custom chat settings
     chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy' or 'custom'
-    customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4o"}')
+    customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4o"}'),
+    selectedPreset: localStorage.getItem(STORAGE_KEYS.SELECTED_PRESET) || '',
+    presets: []
 };
 
 // DOM Elements
 let elements = {};
+
+// Load presets from JSON file
+fetch('presets.json')
+    .then(response => response.json())
+    .then(data => {
+        state.presets = data;
+        // Initialize preset selector if it exists
+        if (document.getElementById('presetPrompt')) {
+            populatePresetSelector();
+        }
+    })
+    .catch(error => console.error('Error loading presets:', error));
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,6 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
         temperature: document.getElementById('temperature'),
         temperatureValue: document.getElementById('temperatureValue'),
         modelSelection: document.getElementById('modelSelection'),
+        presetPrompt: document.getElementById('presetPrompt'),
+
         newChatBtn: document.getElementById('newChatBtn'),
         exportJobHistory: document.getElementById('exportJobHistory'),
         exportServiceTitan: document.getElementById('exportServiceTitan'),
@@ -198,6 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (elements.displaySystemPrompt) {
         elements.displaySystemPrompt.addEventListener('click', toggleSystemPromptDisplay);
+    }
+    if (elements.presetPrompt) {
+        elements.presetPrompt.addEventListener('change', handlePresetChange);
     }
     if (elements.resetSystemPromptCustom) {
         elements.resetSystemPromptCustom.addEventListener('click', resetSystemPromptToDefault);
@@ -1291,6 +1311,70 @@ function switchChatMode(mode) {
     }
 }
 
+// Initialize chat mode based on state - only if elements exist
+if (elements.easyChatMode && elements.customChatMode) {
+    if (state.chatMode === 'easy') {
+        elements.easyChatMode.classList.add('active');
+        elements.customChatMode.classList.remove('active');
+        elements.customChatSettings.classList.add('hidden');
+    } else {
+        elements.easyChatMode.classList.remove('active');
+        elements.customChatMode.classList.add('active');
+        elements.customChatSettings.classList.remove('hidden');
+    }
+}
+
+// Initialize preset selector if it exists
+if (elements.presetPrompt) {
+    populatePresetSelector();
+}
+
+// Function to populate preset selector
+function populatePresetSelector() {
+    if (!elements.presetPrompt) return;
+    
+    // Clear existing options except the first one
+    while (elements.presetPrompt.options.length > 1) {
+        elements.presetPrompt.remove(1);
+    }
+    
+    // Add presets from the state
+    state.presets.forEach(preset => {
+        const option = document.createElement('option');
+        option.value = preset.id;
+        option.textContent = preset.name;
+        elements.presetPrompt.appendChild(option);
+    });
+    
+    // Set the selected value if one exists in localStorage
+    if (state.selectedPreset) {
+        elements.presetPrompt.value = state.selectedPreset;
+    }
+}
+
+// Function to handle preset selection change
+function handlePresetChange() {
+    const selectedPresetId = elements.presetPrompt.value;
+    state.selectedPreset = selectedPresetId;
+    localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, selectedPresetId);
+    
+    if (selectedPresetId) {
+        // Find the selected preset
+        const selectedPreset = state.presets.find(preset => preset.id === selectedPresetId);
+        if (selectedPreset) {
+            // Update the custom system prompt with the preset prompt
+            state.customSystemPrompt = selectedPreset.prompt;
+            localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
+            
+            // Update the UI
+            if (elements.customSystemPrompt) {
+                elements.customSystemPrompt.value = '';
+            }
+            updateSystemPromptPreview();
+        }
+    }
+}
+
 // Custom Chat Settings Functions
 function addToSystemPrompt() {
     if (!elements.customSystemPrompt) return;
@@ -1317,11 +1401,19 @@ function replaceSystemPrompt() {
     
     const newPrompt = elements.customSystemPrompt.value.trim();
     if (newPrompt) {
-        // Replace the custom system prompt only
-        state.customSystemPrompt = newPrompt;
+        // Reset custom system prompt
+        state.customSystemPrompt = '';
         localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
-        elements.customSystemPrompt.value = '';
+        if (elements.customSystemPrompt) {
+            elements.customSystemPrompt.value = '';
+        }
         
+        // Reset preset selection
+        state.selectedPreset = '';
+        localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
+        if (elements.presetPrompt) {
+            elements.presetPrompt.value = '';
+        }    
         // Update the preview if it's visible
         updateSystemPromptPreview();
     }
