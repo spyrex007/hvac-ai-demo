@@ -641,7 +641,69 @@ function updateStorageInfo() {
 }
 
 function saveChatsToLocalStorage() {
-    localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(state.chats));
+    try {
+        localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(state.chats));
+    } catch (error) {
+        if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+            // Show storage quota exceeded popup
+            showStorageQuotaExceededPopup();
+            console.error('Local storage quota exceeded:', error);
+        } else {
+            // For other errors, just log them
+            console.error('Error saving chats to local storage:', error);
+        }
+    }
+}
+
+function showStorageQuotaExceededPopup() {
+    // Create popup container
+    const popupContainer = document.createElement('div');
+    popupContainer.className = 'storage-quota-popup';
+    
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.className = 'storage-quota-popup-content';
+    
+    // Add header
+    const header = document.createElement('h3');
+    header.textContent = 'Storage Limit Reached';
+    
+    // Add message
+    const message = document.createElement('p');
+    message.textContent = 'Your chat history has reached the browser storage limit. Please go to Settings and clear some storage to continue saving new messages.';
+    
+    // Add buttons container
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'storage-quota-popup-buttons';
+    
+    // Add settings button
+    const settingsButton = document.createElement('button');
+    settingsButton.textContent = 'Open Settings';
+    settingsButton.className = 'primary-button';
+    settingsButton.onclick = () => {
+        popupContainer.remove();
+        openSettingsModal();
+    };
+    
+    // Add close button
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Continue Without Saving';
+    closeButton.onclick = () => {
+        popupContainer.remove();
+    };
+    
+    // Assemble the popup
+    buttonsContainer.appendChild(settingsButton);
+    buttonsContainer.appendChild(closeButton);
+    
+    popupContent.appendChild(header);
+    popupContent.appendChild(message);
+    popupContent.appendChild(buttonsContainer);
+    
+    popupContainer.appendChild(popupContent);
+    
+    // Add to the document
+    document.body.appendChild(popupContainer);
 }
 
 // Chat Functionality
