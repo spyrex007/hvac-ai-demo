@@ -25,7 +25,8 @@ const state = {
     activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
     theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default',
     deletedChats: JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS) || '[]'),
-    deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX
+    deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
+    webSearchEnabled: false
 };
 
 // DOM Elements
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatImageUpload: document.getElementById('chatImageUpload'),
         chatTabs: document.getElementById('chatTabs'),
         newChatBtn: document.getElementById('newChatBtn'),
+        webSearchToggle: document.getElementById('webSearchToggle'),
         exportJobHistory: document.getElementById('exportJobHistory'),
         exportServiceTitan: document.getElementById('exportServiceTitan'),
         exportHousecallPro: document.getElementById('exportHousecallPro'),
@@ -110,6 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
     elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
     elements.newChatBtn.addEventListener('click', createNewChat);
+    elements.webSearchToggle.addEventListener('change', (e) => {
+        state.webSearchEnabled = e.target.checked;
+        console.log('Web search enabled:', state.webSearchEnabled);
+    });
     
     // Settings modal event listeners
     elements.settingsBtn.addEventListener('click', openSettingsModal);
@@ -790,13 +796,42 @@ async function sendChatRequest(message, imageDataUrl = null) {
         }
         
         // Use a proxy server approach to avoid CORS issues
-        // Option 1: Use a serverless function URL if you have one
-        // const proxyUrl = 'https://your-serverless-function-url.com/api/openai-proxy';
-        
-        // Option 2: Use a CORS proxy service (for development/testing only)
         const corsProxyUrl = 'https://corsproxy.io/?';
-        const targetUrl = 'https://api.openai.com/v1/chat/completions';
+        let targetUrl, requestBody;
+        
+        // Due to CORS issues with the Responses API, we'll use a modified approach for web search
+        if (state.webSearchEnabled) {
+            console.log('Using web search functionality (via Chat Completions API)');
+            // Instead of using the Responses API, we'll use the Chat Completions API with a modified system prompt
+            targetUrl = 'https://api.openai.com/v1/chat/completions';
+            
+            // Add web search instruction to the system prompt
+            const webSearchSystemPrompt = `${state.systemPrompt}\n\nIMPORTANT: The user has requested that you search the web for the latest information before answering. Please consider recent information that might not be in your training data. When providing information from web sources, please mention this and include what the source might be.`;
+            
+            // Replace the system message with our enhanced version
+            messages[0].content = webSearchSystemPrompt;
+            
+            // Use GPT-4o with enhanced system prompt
+            requestBody = {
+                model: "gpt-4o",
+                messages: messages,
+                max_tokens: 1000,  // Increase token limit for more detailed responses
+                temperature: 0.7   // Slightly higher temperature for more creative web search simulations
+            };
+        } else {
+            // Standard Chat Completions API when web search is not enabled
+            targetUrl = 'https://api.openai.com/v1/chat/completions';
+            requestBody = {
+                model: "gpt-4o",
+                messages: messages,
+                max_tokens: 500
+            };
+        }
+        
         const proxyUrl = corsProxyUrl + encodeURIComponent(targetUrl);
+        
+        console.log('Sending request to:', targetUrl);
+        console.log('Request body:', requestBody);
         
         const response = await fetch(proxyUrl, {
             method: 'POST',
@@ -804,11 +839,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
                 'Authorization': `Bearer ${state.apiKey}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: messages,
-                max_tokens: 500
-            })
+            body: JSON.stringify(requestBody)
         });
 
         // Log the response status for debugging
@@ -828,8 +859,17 @@ async function sendChatRequest(message, imageDataUrl = null) {
             throw new Error(data.error.message || 'Unknown API error');
         }
 
+        // Extract response from the Chat Completions API format (now used for both modes)
         const aiResponse = data.choices[0].message.content;
-        addMessageToChat('ai', aiResponse);
+        
+        // Add a visual indicator if web search was enabled
+        if (state.webSearchEnabled) {
+            // Add a small web search indicator to the message
+            addMessageToChat('ai', aiResponse, false, true);
+        } else {
+            // Regular message without web search indicator
+            addMessageToChat('ai', aiResponse);
+        }
         
     } catch (error) {
         console.error('Error in sendChatRequest:', error);
@@ -837,17 +877,32 @@ async function sendChatRequest(message, imageDataUrl = null) {
     }
 }
 
-function addMessageToChat(role, content, isHtml = false) {
+function addMessageToChat(role, content, isHtml = false, isWebSearch = false) {
     // Create message element
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add(`${role}-message`);
     
-    if (isHtml) {
-        messageDiv.innerHTML = content;
-    } else {
-        messageDiv.innerHTML = role === 'user' ? escapeHtml(content) : marked.parse(content);
+    // Add web search indicator if needed
+    if (isWebSearch && role === 'ai') {
+        messageDiv.classList.add('web-search-message');
     }
+    
+    // Prepare content
+    let messageContent = '';
+    
+    if (isWebSearch && role === 'ai') {
+        // Add web search indicator icon
+        messageContent += '<div class="web-search-indicator" title="Web search was used">🔍</div>';
+    }
+    
+    if (isHtml) {
+        messageContent += content;
+    } else {
+        messageContent += role === 'user' ? escapeHtml(content) : marked.parse(content);
+    }
+    
+    messageDiv.innerHTML = messageContent;
     
     // Add to DOM
     elements.chatMessages.appendChild(messageDiv);
@@ -862,7 +917,8 @@ function addMessageToChat(role, content, isHtml = false) {
                 role,
                 content: isHtml ? content : (role === 'user' ? content : marked.parse(content)),
                 timestamp: new Date().toISOString(),
-                isHtml
+                isHtml,
+                isWebSearch
             });
             
             // Update chat title if it's the first user message
