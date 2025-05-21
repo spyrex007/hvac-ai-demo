@@ -789,16 +789,12 @@ async function sendChatRequest(message, imageDataUrl = null) {
             });
         }
         
-        // Use a proxy server approach to avoid CORS issues
-        // Option 1: Use a serverless function URL if you have one
-        // const proxyUrl = 'https://your-serverless-function-url.com/api/openai-proxy';
+        // Try different approaches to handle the API request
+        let response;
+        let error;
         
-        // Option 2: Use a CORS proxy service (for development/testing only)
-        const corsProxyUrl = 'https://corsproxy.io/?';
-        const targetUrl = 'https://api.openai.com/v1/chat/completions';
-        const proxyUrl = corsProxyUrl + encodeURIComponent(targetUrl);
-        
-        const response = await fetch(proxyUrl, {
+        // Prepare the request payload
+        const requestPayload = {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${state.apiKey}`,
@@ -809,7 +805,58 @@ async function sendChatRequest(message, imageDataUrl = null) {
                 messages: messages,
                 max_tokens: 500
             })
-        });
+        };
+        
+        // Option 1: Try direct request first (will work if CORS is properly configured or if running locally)
+        try {
+            const directUrl = 'https://api.openai.com/v1/chat/completions';
+            response = await fetch(directUrl, requestPayload);
+            if (response.ok) {
+                console.log('Direct API request succeeded');
+            }
+        } catch (e) {
+            console.log('Direct API request failed, trying proxy:', e);
+            error = e;
+        }
+        
+        // Option 2: If direct request failed, try with a CORS proxy
+        if (!response || !response.ok) {
+            try {
+                // Try a different CORS proxy service
+                const corsProxies = [
+                    'https://corsproxy.io/?',
+                    'https://api.allorigins.win/raw?url=',
+                    'https://cors-anywhere.herokuapp.com/'
+                ];
+                
+                // Try each proxy until one works
+                for (const proxy of corsProxies) {
+                    if (response && response.ok) break;
+                    
+                    try {
+                        const targetUrl = 'https://api.openai.com/v1/chat/completions';
+                        const proxyUrl = proxy + encodeURIComponent(targetUrl);
+                        
+                        response = await fetch(proxyUrl, requestPayload);
+                        if (response.ok) {
+                            console.log('Proxy API request succeeded with:', proxy);
+                            break;
+                        }
+                    } catch (e) {
+                        console.log(`Proxy ${proxy} failed:`, e);
+                        error = e;
+                    }
+                }
+            } catch (e) {
+                console.error('All proxy attempts failed:', e);
+                error = e;
+            }
+        }
+        
+        // If all attempts failed, throw the last error
+        if (!response || !response.ok) {
+            throw error || new Error('All API request attempts failed');
+        }
 
         // Log the response status for debugging
         console.log('API Response Status:', response.status);
