@@ -4,7 +4,8 @@ const STORAGE_KEYS = {
     PARTS_LIST: 'hvac_parts_list',
     SYSTEM_PROMPT: 'hvac_system_prompt',
     CHATS: 'hvac_chats',
-    ACTIVE_CHAT_ID: 'hvac_active_chat_id'
+    ACTIVE_CHAT_ID: 'hvac_active_chat_id',
+    THEME: 'hvac_theme'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.";
@@ -17,7 +18,8 @@ const state = {
     systemPrompt: localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT,
     chatImageFile: null,
     chats: JSON.parse(localStorage.getItem(STORAGE_KEYS.CHATS) || '[]'),
-    activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null
+    activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
+    theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default'
 };
 
 // DOM Elements
@@ -57,7 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
         newChatBtn: document.getElementById('newChatBtn'),
         exportJobHistory: document.getElementById('exportJobHistory'),
         exportServiceTitan: document.getElementById('exportServiceTitan'),
-        exportHousecallPro: document.getElementById('exportHousecallPro')
+        exportHousecallPro: document.getElementById('exportHousecallPro'),
+        // Settings modal elements
+        settingsBtn: document.getElementById('settingsBtn'),
+        settingsModal: document.getElementById('settingsModal'),
+        closeSettings: document.getElementById('closeSettings'),
+        // Theme buttons
+        themeButtons: document.querySelectorAll('.theme-btn')
     };
 
     // Initialize event listeners
@@ -91,6 +99,15 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
     elements.newChatBtn.addEventListener('click', createNewChat);
     
+    // Settings modal event listeners
+    elements.settingsBtn.addEventListener('click', openSettingsModal);
+    elements.closeSettings.addEventListener('click', closeSettingsModal);
+    
+    // Theme buttons event listeners
+    elements.themeButtons.forEach(btn => {
+        btn.addEventListener('click', () => switchTheme(btn.dataset.theme));
+    });
+    
     // Export button event listeners (no functionality yet)
     elements.exportJobHistory.addEventListener('click', () => console.log('Export Job History clicked'));
     elements.exportServiceTitan.addEventListener('click', () => console.log('Export to Service Titan clicked'));
@@ -108,6 +125,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize chat tabs
     initializeChats();
+    
+    // Apply saved theme
+    applyTheme(state.theme);
 });
 
 
@@ -645,6 +665,40 @@ async function fileToBase64(file) {
         reader.onload = () => resolve(reader.result);
         reader.onerror = error => reject(error);
     });
+}
+
+// Settings Modal Functions
+function openSettingsModal() {
+    elements.settingsModal.classList.remove('hidden');
+}
+
+function closeSettingsModal() {
+    elements.settingsModal.classList.add('hidden');
+}
+
+// Theme Management
+function switchTheme(theme) {
+    // Update active button
+    elements.themeButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+    
+    // Apply theme
+    applyTheme(theme);
+    
+    // Save to state and localStorage
+    state.theme = theme;
+    localStorage.setItem(STORAGE_KEYS.THEME, theme);
+}
+
+function applyTheme(theme) {
+    // Remove all theme classes
+    document.body.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange');
+    
+    // Add the selected theme class (if not default)
+    if (theme !== 'default') {
+        document.body.classList.add(`theme-${theme}`);
+    }
 }
 
 // Initialize

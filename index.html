@@ -11,28 +11,20 @@
     <div class="container">
         <header>
             <h1>HVAC AI Assistant</h1>
-            <div class="api-key-section">
-                <input type="password" id="apiKey" placeholder="Enter OpenAI API Key">
-                <button id="saveApiKey">Save API Key</button>
-                <span id="apiStatus"></span>
-            </div>
-            <div class="mode-toggle">
-                <button id="chatMode" class="mode-btn active">Chat Mode</button>
-                <button id="identifyMode" class="mode-btn hidden">Identify Mode</button>
+            <div class="header-controls">
+                <button id="settingsBtn" class="settings-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </button>
             </div>
         </header>
 
         <main>
             <!-- Chat Mode Section -->
             <section id="chatSection" class="mode-section">
-                <div class="system-prompt-container">
-                    <h3>Chat System Prompt</h3>
-                    <textarea id="systemPrompt" rows="4">You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.</textarea>
-                    <div class="prompt-buttons">
-                        <button id="savePrompt">Save</button>
-                        <button id="resetPrompt">Reset</button>
-                    </div>
-                </div>
                 
                 <!-- Chat Tabs -->
                 <div class="chat-tabs-container">
@@ -111,6 +103,54 @@
             </section>
         </main>
     </div>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="closeSettings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>API Key</h3>
+                    <div class="api-key-section">
+                        <input type="password" id="apiKey" placeholder="Enter OpenAI API Key">
+                        <button id="saveApiKey">Save API Key</button>
+                        <span id="apiStatus"></span>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Mode</h3>
+                    <div class="mode-toggle">
+                        <button id="chatMode" class="mode-btn active">Chat Mode</button>
+                        <button id="identifyMode" class="mode-btn hidden">Identify Mode</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Chat System Prompt</h3>
+                    <textarea id="systemPrompt" rows="4">You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.</textarea>
+                    <div class="prompt-buttons">
+                        <button id="savePrompt">Save</button>
+                        <button id="resetPrompt">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="theme-options">
+                        <button id="themeDefault" class="theme-btn active" data-theme="default">Default</button>
+                        <button id="themeBlue" class="theme-btn" data-theme="blue">Blue</button>
+                        <button id="themeGreen" class="theme-btn" data-theme="green">Green</button>
+                        <button id="themePurple" class="theme-btn" data-theme="purple">Purple</button>
+                        <button id="themeOrange" class="theme-btn" data-theme="orange">Orange</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="app.js"></script>
 </body>

@@ -1,11 +1,88 @@
 :root {
+    /* Default theme */
     --primary-color: #2563eb;
     --secondary-color: #1e40af;
+    --accent-color: #3b82f6;
     --background-color: #f8fafc;
+    --card-background: #ffffff;
     --text-color: #1e293b;
     --border-color: #e2e8f0;
     --success-color: #22c55e;
     --error-color: #ef4444;
+    --user-message-bg: #2563eb;
+    --user-message-color: #ffffff;
+    --ai-message-bg: #f1f5f9;
+    --ai-message-color: #1e293b;
+    --button-hover: #1e40af;
+    --header-bg: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+/* Blue Theme */
+.theme-blue {
+    --primary-color: #0ea5e9;
+    --secondary-color: #0369a1;
+    --accent-color: #38bdf8;
+    --background-color: #f0f9ff;
+    --card-background: #ffffff;
+    --text-color: #0c4a6e;
+    --border-color: #bae6fd;
+    --user-message-bg: #0ea5e9;
+    --user-message-color: #ffffff;
+    --ai-message-bg: #e0f2fe;
+    --ai-message-color: #0c4a6e;
+    --button-hover: #0369a1;
+    --header-bg: linear-gradient(135deg, #0ea5e9, #0369a1);
+}
+
+/* Green Theme */
+.theme-green {
+    --primary-color: #10b981;
+    --secondary-color: #047857;
+    --accent-color: #34d399;
+    --background-color: #ecfdf5;
+    --card-background: #ffffff;
+    --text-color: #064e3b;
+    --border-color: #a7f3d0;
+    --user-message-bg: #10b981;
+    --user-message-color: #ffffff;
+    --ai-message-bg: #d1fae5;
+    --ai-message-color: #064e3b;
+    --button-hover: #047857;
+    --header-bg: linear-gradient(135deg, #10b981, #047857);
+}
+
+/* Purple Theme */
+.theme-purple {
+    --primary-color: #8b5cf6;
+    --secondary-color: #6d28d9;
+    --accent-color: #a78bfa;
+    --background-color: #f5f3ff;
+    --card-background: #ffffff;
+    --text-color: #4c1d95;
+    --border-color: #ddd6fe;
+    --user-message-bg: #8b5cf6;
+    --user-message-color: #ffffff;
+    --ai-message-bg: #ede9fe;
+    --ai-message-color: #4c1d95;
+    --button-hover: #6d28d9;
+    --header-bg: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+/* Orange Theme */
+.theme-orange {
+    --primary-color: #f97316;
+    --secondary-color: #c2410c;
+    --accent-color: #fb923c;
+    --background-color: #fff7ed;
+    --card-background: #ffffff;
+    --text-color: #7c2d12;
+    --border-color: #fed7aa;
+    --user-message-bg: #f97316;
+    --user-message-color: #ffffff;
+    --ai-message-bg: #ffedd5;
+    --ai-message-color: #7c2d12;
+    --button-hover: #c2410c;
+    --header-bg: linear-gradient(135deg, #f97316, #c2410c);
 }
 
 * {
@@ -19,6 +96,7 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.5;
+    transition: all 0.3s ease;
 }
 
 .container {
@@ -29,11 +107,19 @@ body {
 
 header {
     margin-bottom: 2rem;
+    background: var(--header-bg);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 h1 {
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
+    color: white;
+    margin-bottom: 0;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .api-key-section {
@@ -86,10 +172,11 @@ button:hover {
 }
 
 .mode-section {
-    background-color: white;
+    background-color: var(--card-background);
     padding: 1.5rem;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-color);
 }
 
 .hidden {
@@ -118,14 +205,19 @@ button:hover {
 }
 
 .user-message {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: var(--user-message-bg);
+    color: var(--user-message-color);
     margin-left: 2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem 0.75rem 0 0.75rem;
 }
 
 .ai-message {
-    background-color: var(--background-color);
+    background-color: var(--ai-message-bg);
+    color: var(--ai-message-color);
     margin-right: 2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem 0.75rem 0.75rem 0;
 }
 
 .input-area {
@@ -358,6 +450,146 @@ th {
     line-height: 1;
     padding: 0;
     cursor: pointer;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--header-bg);
+    color: white;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.settings-section {
+    margin-bottom: 2rem;
+}
+
+.settings-section h3 {
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.theme-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.theme-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.theme-btn.active {
+    border: 2px solid var(--primary-color);
+}
+
+#themeDefault {
+    background-color: #2563eb;
+    color: white;
+}
+
+#themeBlue {
+    background-color: #0ea5e9;
+    color: white;
+}
+
+#themeGreen {
+    background-color: #10b981;
+    color: white;
+}
+
+#themePurple {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+#themeOrange {
+    background-color: #f97316;
+    color: white;
+}
+
+/* Settings Button */
+.header-controls {
+    display: flex;
+    gap: 1rem;
+}
+
+.settings-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.settings-btn svg {
+    stroke: white;
 }
 
 #apiStatus {
