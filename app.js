@@ -793,7 +793,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
         // The worker handles the OpenAI API request and adds proper CORS headers
         
         // Replace this URL with your deployed Cloudflare Worker URL
-        const cloudflareWorkerUrl = 'https://openai-proxy-worker.your-subdomain.workers.dev';
+        const cloudflareWorkerUrl = 'https://hvachat.matthewwarrenjackson.workers.dev';
         
         console.log('Sending request to Cloudflare Worker proxy');
         
