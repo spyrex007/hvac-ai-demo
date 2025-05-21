@@ -2,7 +2,9 @@
 const STORAGE_KEYS = {
     API_KEY: 'hvac_ai_api_key',
     PARTS_LIST: 'hvac_parts_list',
-    SYSTEM_PROMPT: 'hvac_system_prompt'
+    SYSTEM_PROMPT: 'hvac_system_prompt',
+    CHATS: 'hvac_chats',
+    ACTIVE_CHAT_ID: 'hvac_active_chat_id'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.";
@@ -13,7 +15,9 @@ const state = {
     currentImage: null,
     partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]'),
     systemPrompt: localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT,
-    chatImageFile: null
+    chatImageFile: null,
+    chats: JSON.parse(localStorage.getItem(STORAGE_KEYS.CHATS) || '[]'),
+    activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null
 };
 
 // DOM Elements
@@ -48,7 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
         systemPrompt: document.getElementById('systemPrompt'),
         savePrompt: document.getElementById('savePrompt'),
         resetPrompt: document.getElementById('resetPrompt'),
-        chatImageUpload: document.getElementById('chatImageUpload')
+        chatImageUpload: document.getElementById('chatImageUpload'),
+        chatTabs: document.getElementById('chatTabs'),
+        newChatBtn: document.getElementById('newChatBtn'),
+        exportJobHistory: document.getElementById('exportJobHistory'),
+        exportServiceTitan: document.getElementById('exportServiceTitan'),
+        exportHousecallPro: document.getElementById('exportHousecallPro')
     };
 
     // Initialize event listeners
@@ -80,6 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.savePrompt.addEventListener('click', handleSaveSystemPrompt);
     elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
     elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
+    elements.newChatBtn.addEventListener('click', createNewChat);
+    
+    // Export button event listeners (no functionality yet)
+    elements.exportJobHistory.addEventListener('click', () => console.log('Export Job History clicked'));
+    elements.exportServiceTitan.addEventListener('click', () => console.log('Export to Service Titan clicked'));
+    elements.exportHousecallPro.addEventListener('click', () => console.log('Export to Housecall Pro clicked'));
 
         // Initialize parts table
     if (elements.partsTableBody) {
@@ -90,6 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elements.systemPrompt) {
         elements.systemPrompt.value = state.systemPrompt;
     }
+    
+    // Initialize chat tabs
+    initializeChats();
 });
 
 
@@ -307,8 +325,168 @@ function handleChatImageUpload(event) {
     }
 }
 
+// Chat Tabs Functionality
+function initializeChats() {
+    // Create a new chat if none exist
+    if (state.chats.length === 0) {
+        createNewChat();
+    } else {
+        // Load existing chats
+        updateChatTabs();
+        
+        // Load active chat or set to first chat
+        if (!state.activeChatId || !state.chats.some(chat => chat.id === state.activeChatId)) {
+            state.activeChatId = state.chats[0].id;
+            localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
+        }
+        
+        loadChatMessages(state.activeChatId);
+    }
+}
+
+function createNewChat() {
+    // Create a new chat object
+    const newChat = {
+        id: Date.now().toString(),
+        title: 'New Chat',
+        createdAt: new Date().toISOString(),
+        messages: []
+    };
+    
+    // Add to state
+    state.chats.push(newChat);
+    state.activeChatId = newChat.id;
+    
+    // Save to local storage
+    saveChatsToLocalStorage();
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
+    
+    // Update UI
+    updateChatTabs();
+    clearChatMessages();
+}
+
+function updateChatTabs() {
+    // Clear existing tabs
+    elements.chatTabs.innerHTML = '';
+    
+    // Add tab for each chat
+    state.chats.forEach(chat => {
+        const tab = document.createElement('div');
+        tab.classList.add('chat-tab');
+        if (chat.id === state.activeChatId) {
+            tab.classList.add('active');
+        }
+        
+        tab.innerHTML = `
+            <span class="chat-tab-title">${escapeHtml(chat.title)}</span>
+            <span class="chat-tab-close">×</span>
+        `;
+        
+        // Add click event to switch to this chat
+        tab.addEventListener('click', (e) => {
+            // Don't switch if clicking the close button
+            if (e.target.classList.contains('chat-tab-close')) return;
+            
+            switchToChat(chat.id);
+        });
+        
+        // Add close button functionality
+        const closeBtn = tab.querySelector('.chat-tab-close');
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chat.id);
+        });
+        
+        elements.chatTabs.appendChild(tab);
+    });
+}
+
+function switchToChat(chatId) {
+    // Don't do anything if already on this chat
+    if (state.activeChatId === chatId) return;
+    
+    // Update state
+    state.activeChatId = chatId;
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, chatId);
+    
+    // Update UI
+    updateChatTabs();
+    loadChatMessages(chatId);
+}
+
+function loadChatMessages(chatId) {
+    // Clear current messages
+    clearChatMessages();
+    
+    // Find the chat
+    const chat = state.chats.find(c => c.id === chatId);
+    if (!chat) return;
+    
+    // Add each message to the UI
+    chat.messages.forEach(msg => {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(`${msg.role}-message`);
+        
+        if (msg.isHtml) {
+            messageDiv.innerHTML = msg.content;
+        } else {
+            messageDiv.innerHTML = msg.content;
+        }
+        
+        elements.chatMessages.appendChild(messageDiv);
+    });
+    
+    // Scroll to bottom
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+}
+
+function clearChatMessages() {
+    elements.chatMessages.innerHTML = '';
+}
+
+function deleteChat(chatId) {
+    // Find index of chat to delete
+    const chatIndex = state.chats.findIndex(c => c.id === chatId);
+    if (chatIndex === -1) return;
+    
+    // Remove the chat
+    state.chats.splice(chatIndex, 1);
+    
+    // If we deleted the active chat, switch to another one
+    if (state.activeChatId === chatId) {
+        if (state.chats.length > 0) {
+            // Switch to the next chat or the previous one if we deleted the last chat
+            const newIndex = Math.min(chatIndex, state.chats.length - 1);
+            state.activeChatId = state.chats[newIndex].id;
+        } else {
+            // No chats left, create a new one
+            createNewChat();
+            return; // createNewChat will handle the UI updates
+        }
+    }
+    
+    // Save to local storage
+    saveChatsToLocalStorage();
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
+    
+    // Update UI
+    updateChatTabs();
+    loadChatMessages(state.activeChatId);
+}
+
+function saveChatsToLocalStorage() {
+    localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(state.chats));
+}
+
 // Chat Functionality
 async function handleSendMessage() {
+    // Make sure we have an active chat
+    if (!state.activeChatId) {
+        createNewChat();
+    }
+    
     const message = elements.userInput.value.trim();
     const hasImage = state.chatImageFile !== null;
     
@@ -406,6 +584,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
 }
 
 function addMessageToChat(role, content, isHtml = false) {
+    // Create message element
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message');
     messageDiv.classList.add(`${role}-message`);
@@ -416,8 +595,37 @@ function addMessageToChat(role, content, isHtml = false) {
         messageDiv.innerHTML = role === 'user' ? escapeHtml(content) : marked.parse(content);
     }
     
+    // Add to DOM
     elements.chatMessages.appendChild(messageDiv);
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    
+    // Save to current chat in state
+    if (state.activeChatId) {
+        const chatIndex = state.chats.findIndex(chat => chat.id === state.activeChatId);
+        if (chatIndex !== -1) {
+            // Add message to chat history
+            state.chats[chatIndex].messages.push({
+                role,
+                content: isHtml ? content : (role === 'user' ? content : marked.parse(content)),
+                timestamp: new Date().toISOString(),
+                isHtml
+            });
+            
+            // Update chat title if it's the first user message
+            if (role === 'user' && state.chats[chatIndex].messages.filter(m => m.role === 'user').length === 1) {
+                // Use first few words of first message as title
+                const plainTextContent = isHtml ? 
+                    content.replace(/<[^>]*>/g, '') : content;
+                const words = plainTextContent.split(' ');
+                const title = words.slice(0, 4).join(' ') + (words.length > 4 ? '...' : '');
+                state.chats[chatIndex].title = title;
+                updateChatTabs();
+            }
+            
+            // Save to local storage
+            saveChatsToLocalStorage();
+        }
+    }
 }
 
 // Utility Functions

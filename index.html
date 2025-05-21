@@ -33,6 +33,15 @@
                         <button id="resetPrompt">Reset</button>
                     </div>
                 </div>
+                
+                <!-- Chat Tabs -->
+                <div class="chat-tabs-container">
+                    <div class="chat-tabs" id="chatTabs">
+                        <!-- Tabs will be added dynamically -->
+                    </div>
+                    <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
+                </div>
+                
                 <div class="chat-container">
                     <div id="chatMessages" class="messages"></div>
                     <div class="input-area">
@@ -46,6 +55,13 @@
                         </label>
                         <input type="file" id="chatImageUpload" accept="image/*" class="hidden">
                         <button id="sendMessage">Send</button>
+                    </div>
+                    
+                    <!-- Export Buttons -->
+                    <div class="export-buttons">
+                        <button id="exportJobHistory" class="export-btn">Export Job History</button>
+                        <button id="exportServiceTitan" class="export-btn">Export to Service Titan</button>
+                        <button id="exportHousecallPro" class="export-btn">Export to Housecall Pro</button>
                     </div>
                 </div>
             </section>
