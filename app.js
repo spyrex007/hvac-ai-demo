@@ -755,6 +755,17 @@ async function sendChatRequest(message, imageDataUrl = null) {
         // Add the current message
         if (imageDataUrl) {
             // Format message with image for GPT-4o
+            // Ensure the image data URL is properly formatted
+            const formattedImageUrl = imageDataUrl.startsWith('data:image/') 
+                ? imageDataUrl 
+                : `data:image/jpeg;base64,${imageDataUrl.replace(/^data:.*?;base64,/, '')}`;
+                
+            console.log('Sending message with image:', {
+                messageText: message,
+                hasImageData: !!formattedImageUrl,
+                imageUrlLength: formattedImageUrl.length
+            });
+            
             messages.push({
                 role: "user",
                 content: [
@@ -765,7 +776,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
                     {
                         type: "image_url",
                         image_url: {
-                            url: imageDataUrl
+                            url: formattedImageUrl
                         }
                     }
                 ]
@@ -778,7 +789,16 @@ async function sendChatRequest(message, imageDataUrl = null) {
             });
         }
         
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Use a proxy server approach to avoid CORS issues
+        // Option 1: Use a serverless function URL if you have one
+        // const proxyUrl = 'https://your-serverless-function-url.com/api/openai-proxy';
+        
+        // Option 2: Use a CORS proxy service (for development/testing only)
+        const corsProxyUrl = 'https://corsproxy.io/?';
+        const targetUrl = 'https://api.openai.com/v1/chat/completions';
+        const proxyUrl = corsProxyUrl + encodeURIComponent(targetUrl);
+        
+        const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${state.apiKey}`,
@@ -791,16 +811,29 @@ async function sendChatRequest(message, imageDataUrl = null) {
             })
         });
 
+        // Log the response status for debugging
+        console.log('API Response Status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+        }
+        
         const data = await response.json();
+        console.log('API Response Data:', data);
+        
         if (data.error) {
-            throw new Error(data.error.message);
+            console.error('OpenAI API Error:', data.error);
+            throw new Error(data.error.message || 'Unknown API error');
         }
 
         const aiResponse = data.choices[0].message.content;
         addMessageToChat('ai', aiResponse);
         
     } catch (error) {
-        addMessageToChat('ai', `Error: ${error.message}`);
+        console.error('Error in sendChatRequest:', error);
+        addMessageToChat('ai', `Error: ${error.message}. Please check the console for more details.`);
     }
 }
 
