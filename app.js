@@ -5,10 +5,14 @@ const STORAGE_KEYS = {
     SYSTEM_PROMPT: 'hvac_system_prompt',
     CHATS: 'hvac_chats',
     ACTIVE_CHAT_ID: 'hvac_active_chat_id',
-    THEME: 'hvac_theme'
+    THEME: 'hvac_theme',
+    DELETED_CHATS: 'hvac_deleted_chats',
+    DELETED_CHATS_MAX: 'hvac_deleted_chats_max'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.";
+
+const DEFAULT_DELETED_CHATS_MAX = 5;
 
 const state = {
     apiKey: localStorage.getItem(STORAGE_KEYS.API_KEY) || '',
@@ -19,7 +23,9 @@ const state = {
     chatImageFile: null,
     chats: JSON.parse(localStorage.getItem(STORAGE_KEYS.CHATS) || '[]'),
     activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
-    theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default'
+    theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default',
+    deletedChats: JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS) || '[]'),
+    deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX
 };
 
 // DOM Elements
@@ -65,7 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsModal: document.getElementById('settingsModal'),
         closeSettings: document.getElementById('closeSettings'),
         // Theme buttons
-        themeButtons: document.querySelectorAll('.theme-btn')
+        themeButtons: document.querySelectorAll('.theme-btn'),
+        // Restore and storage management
+        restoreChat: document.getElementById('restoreChat'),
+        deletedChatsMax: document.getElementById('deletedChatsMax'),
+        clearStorage: document.getElementById('clearStorage'),
+        clearApiKey: document.getElementById('clearApiKey'),
+        storageInfo: document.getElementById('storageInfo')
     };
 
     // Initialize event listeners
@@ -108,6 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => switchTheme(btn.dataset.theme));
     });
     
+    // Restore and storage management event listeners
+    elements.restoreChat.addEventListener('click', restoreDeletedChat);
+    elements.deletedChatsMax.addEventListener('change', () => updateDeletedChatsMax(elements.deletedChatsMax.value));
+    elements.clearStorage.addEventListener('click', () => {
+        const includeApiKey = elements.clearApiKey.checked;
+        if (confirm(`Are you sure you want to clear all chat data${includeApiKey ? ' and API key' : ''}? This cannot be undone.`)) {
+            clearLocalStorage(includeApiKey);
+        }
+    });
+    
     // Export button event listeners (no functionality yet)
     elements.exportJobHistory.addEventListener('click', () => console.log('Export Job History clicked'));
     elements.exportServiceTitan.addEventListener('click', () => console.log('Export to Service Titan clicked'));
@@ -128,6 +150,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Apply saved theme
     applyTheme(state.theme);
+    
+    // Initialize storage info and restore button
+    elements.deletedChatsMax.value = state.deletedChatsMax;
+    updateStorageInfo();
+    updateRestoreButton();
 });
 
 
@@ -368,7 +395,7 @@ function createNewChat() {
     // Create a new chat object
     const newChat = {
         id: Date.now().toString(),
-        title: 'New Chat',
+        title: '...',
         createdAt: new Date().toISOString(),
         messages: []
     };
@@ -471,7 +498,24 @@ function deleteChat(chatId) {
     const chatIndex = state.chats.findIndex(c => c.id === chatId);
     if (chatIndex === -1) return;
     
-    // Remove the chat
+    // Get the chat to delete
+    const chatToDelete = state.chats[chatIndex];
+    
+    // Add to deleted chats
+    state.deletedChats.push({
+        ...chatToDelete,
+        deletedAt: new Date().toISOString()
+    });
+    
+    // Maintain max deleted chats
+    if (state.deletedChats.length > state.deletedChatsMax) {
+        state.deletedChats.shift(); // Remove oldest deleted chat
+    }
+    
+    // Save deleted chats to local storage
+    localStorage.setItem(STORAGE_KEYS.DELETED_CHATS, JSON.stringify(state.deletedChats));
+    
+    // Remove the chat from active chats
     state.chats.splice(chatIndex, 1);
     
     // If we deleted the active chat, switch to another one
@@ -494,6 +538,106 @@ function deleteChat(chatId) {
     // Update UI
     updateChatTabs();
     loadChatMessages(state.activeChatId);
+    updateRestoreButton();
+}
+
+function restoreDeletedChat() {
+    if (state.deletedChats.length === 0) return;
+    
+    // Get the most recently deleted chat
+    const chatToRestore = state.deletedChats.pop();
+    
+    // Remove the deletedAt property
+    delete chatToRestore.deletedAt;
+    
+    // Add it back to active chats
+    state.chats.push(chatToRestore);
+    
+    // Switch to the restored chat
+    state.activeChatId = chatToRestore.id;
+    
+    // Save to local storage
+    saveChatsToLocalStorage();
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
+    localStorage.setItem(STORAGE_KEYS.DELETED_CHATS, JSON.stringify(state.deletedChats));
+    
+    // Update UI
+    updateChatTabs();
+    loadChatMessages(state.activeChatId);
+    updateRestoreButton();
+}
+
+function updateRestoreButton() {
+    const restoreBtn = document.getElementById('restoreChat');
+    if (restoreBtn) {
+        restoreBtn.disabled = state.deletedChats.length === 0;
+        restoreBtn.textContent = `Restore Deleted Chat (${state.deletedChats.length})`;
+    }
+}
+
+function updateDeletedChatsMax(value) {
+    const maxValue = parseInt(value);
+    if (isNaN(maxValue) || maxValue < 0) return;
+    
+    state.deletedChatsMax = maxValue;
+    localStorage.setItem(STORAGE_KEYS.DELETED_CHATS_MAX, maxValue);
+    
+    // Trim deleted chats if needed
+    if (state.deletedChats.length > maxValue) {
+        state.deletedChats = state.deletedChats.slice(-maxValue);
+        localStorage.setItem(STORAGE_KEYS.DELETED_CHATS, JSON.stringify(state.deletedChats));
+    }
+    
+    updateStorageInfo();
+}
+
+function clearLocalStorage(includeApiKey) {
+    // Clear chats
+    state.chats = [];
+    state.deletedChats = [];
+    state.activeChatId = null;
+    localStorage.removeItem(STORAGE_KEYS.CHATS);
+    localStorage.removeItem(STORAGE_KEYS.DELETED_CHATS);
+    localStorage.removeItem(STORAGE_KEYS.ACTIVE_CHAT_ID);
+    
+    // Clear API key if requested
+    if (includeApiKey) {
+        state.apiKey = '';
+        localStorage.removeItem(STORAGE_KEYS.API_KEY);
+        elements.apiKey.value = '';
+        elements.apiStatus.textContent = '';
+    }
+    
+    // Create a new chat
+    createNewChat();
+    
+    // Update UI
+    updateStorageInfo();
+    closeSettingsModal();
+}
+
+function updateStorageInfo() {
+    const storageInfoElement = document.getElementById('storageInfo');
+    if (!storageInfoElement) return;
+    
+    // Calculate storage usage
+    const chatsSize = new Blob([JSON.stringify(state.chats)]).size;
+    const deletedChatsSize = new Blob([JSON.stringify(state.deletedChats)]).size;
+    const totalSize = chatsSize + deletedChatsSize;
+    
+    // Format sizes
+    const formatSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' bytes';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+    
+    // Update info text
+    storageInfoElement.innerHTML = `
+        <div>Active Chats: ${state.chats.length} (${formatSize(chatsSize)})</div>
+        <div>Deleted Chats: ${state.deletedChats.length}/${state.deletedChatsMax} (${formatSize(deletedChatsSize)})</div>
+        <div>Total Storage: ${formatSize(totalSize)}</div>
+    `;
 }
 
 function saveChatsToLocalStorage() {

@@ -55,6 +55,10 @@
                         <button id="exportServiceTitan" class="export-btn">Export to Service Titan</button>
                         <button id="exportHousecallPro" class="export-btn">Export to Housecall Pro</button>
                     </div>
+                    
+                    <div class="restore-container">
+                        <button id="restoreChat" class="restore-btn" disabled>Restore Deleted Chat (0)</button>
+                    </div>
                 </div>
             </section>
 
@@ -145,6 +149,28 @@
                         <button id="themeGreen" class="theme-btn" data-theme="green">Green</button>
                         <button id="themePurple" class="theme-btn" data-theme="purple">Purple</button>
                         <button id="themeOrange" class="theme-btn" data-theme="orange">Orange</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Storage Management</h3>
+                    <div id="storageInfo" class="storage-info">
+                        <!-- Storage info will be populated by JavaScript -->
+                    </div>
+                    
+                    <div class="storage-controls">
+                        <div class="deleted-chats-max">
+                            <label for="deletedChatsMax">Max Deleted Chats to Keep:</label>
+                            <input type="number" id="deletedChatsMax" min="0" max="50" value="5">
+                        </div>
+                        
+                        <div class="clear-storage">
+                            <button id="clearStorage" class="danger-btn">Clear Local Storage</button>
+                            <div class="clear-api-key">
+                                <input type="checkbox" id="clearApiKey">
+                                <label for="clearApiKey">Include API Key</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
