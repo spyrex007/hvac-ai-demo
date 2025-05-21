@@ -33,7 +33,7 @@ const state = {
     deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
     // Custom chat settings
     chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy' or 'custom'
-    customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4o"}'),
+    customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4.1"}'),
     selectedPreset: localStorage.getItem(STORAGE_KEYS.SELECTED_PRESET) || '',
     presets: []
 };
@@ -1068,7 +1068,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: state.chatMode === 'custom' ? state.customChatSettings.model : "gpt-4o",
+                model: state.chatMode === 'custom' ? state.customChatSettings.model : "gpt-4.1",
                 messages: messages,
                 max_tokens: state.chatMode === 'custom' ? state.customChatSettings.maxTokens : 2000,
                 ...(state.chatMode === 'custom' && { temperature: state.customChatSettings.temperature })
