@@ -25,7 +25,14 @@ const state = {
     activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
     theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default',
     deletedChats: JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS) || '[]'),
-    deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX
+    deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
+    // Custom chat settings
+    chatMode: 'easy', // 'easy' or 'custom'
+    customChatSettings: {
+        maxTokens: 2000,
+        temperature: 0.7,
+        model: 'gpt-4o'
+    }
 };
 
 // DOM Elements
@@ -62,6 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPrompt: document.getElementById('resetPrompt'),
         chatImageUpload: document.getElementById('chatImageUpload'),
         chatTabs: document.getElementById('chatTabs'),
+        // New chat mode elements
+        easyChatMode: document.getElementById('easyChatMode'),
+        customChatMode: document.getElementById('customChatMode'),
+        customChatSettings: document.getElementById('customChatSettings'),
+        // Custom chat settings elements
+        customSystemPrompt: document.getElementById('customSystemPrompt'),
+        addToSystemPrompt: document.getElementById('addToSystemPrompt'),
+        replaceSystemPrompt: document.getElementById('replaceSystemPrompt'),
+        maxTokens: document.getElementById('maxTokens'),
+        temperature: document.getElementById('temperature'),
+        temperatureValue: document.getElementById('temperatureValue'),
+        modelSelection: document.getElementById('modelSelection'),
         newChatBtn: document.getElementById('newChatBtn'),
         exportJobHistory: document.getElementById('exportJobHistory'),
         exportServiceTitan: document.getElementById('exportServiceTitan'),
@@ -110,6 +129,20 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.resetPrompt.addEventListener('click', handleResetSystemPrompt);
     elements.chatImageUpload.addEventListener('change', handleChatImageUpload);
     elements.newChatBtn.addEventListener('click', createNewChat);
+    
+    // Chat Mode Selector Event Listeners
+    elements.easyChatMode.addEventListener('click', () => switchChatMode('easy'));
+    elements.customChatMode.addEventListener('click', () => switchChatMode('custom'));
+    
+    // Custom Chat Settings Event Listeners
+    elements.addToSystemPrompt.addEventListener('click', addToSystemPrompt);
+    elements.replaceSystemPrompt.addEventListener('click', replaceSystemPrompt);
+    elements.temperature.addEventListener('input', updateTemperatureValue);
+    elements.maxTokens.addEventListener('change', updateMaxTokens);
+    elements.modelSelection.addEventListener('change', updateModel);
+    
+    // Initialize temperature value display
+    elements.temperatureValue.textContent = elements.temperature.value;
     
     // Settings modal event listeners
     elements.settingsBtn.addEventListener('click', openSettingsModal);
@@ -866,9 +899,10 @@ async function sendChatRequest(message, imageDataUrl = null) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "gpt-4o",
+                model: state.chatMode === 'custom' ? state.customChatSettings.model : "gpt-4o",
                 messages: messages,
-                max_tokens: 2000
+                max_tokens: state.chatMode === 'custom' ? state.customChatSettings.maxTokens : 2000,
+                ...(state.chatMode === 'custom' && { temperature: state.customChatSettings.temperature })
             })
         });
         
@@ -1070,8 +1104,69 @@ function showApiKeyRequiredPopup() {
     document.body.appendChild(popupContainer);
 }
 
+// Chat Mode Functions
+function switchChatMode(mode) {
+    // Update state
+    state.chatMode = mode;
+    
+    // Update UI
+    if (mode === 'easy') {
+        elements.easyChatMode.classList.add('active');
+        elements.customChatMode.classList.remove('active');
+        elements.customChatSettings.classList.add('hidden');
+    } else {
+        elements.easyChatMode.classList.remove('active');
+        elements.customChatMode.classList.add('active');
+        elements.customChatSettings.classList.remove('hidden');
+    }
+}
+
+// Custom Chat Settings Functions
+function addToSystemPrompt() {
+    const additionalPrompt = elements.customSystemPrompt.value.trim();
+    if (additionalPrompt) {
+        state.systemPrompt = `${state.systemPrompt}\n\n${additionalPrompt}`;
+        elements.systemPrompt.value = state.systemPrompt;
+        localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, state.systemPrompt);
+        elements.customSystemPrompt.value = '';
+    }
+}
+
+function replaceSystemPrompt() {
+    const newPrompt = elements.customSystemPrompt.value.trim();
+    if (newPrompt) {
+        state.systemPrompt = newPrompt;
+        elements.systemPrompt.value = state.systemPrompt;
+        localStorage.setItem(STORAGE_KEYS.SYSTEM_PROMPT, state.systemPrompt);
+        elements.customSystemPrompt.value = '';
+    }
+}
+
+function updateTemperatureValue() {
+    const value = elements.temperature.value;
+    elements.temperatureValue.textContent = value;
+    state.customChatSettings.temperature = parseFloat(value);
+}
+
+function updateMaxTokens() {
+    state.customChatSettings.maxTokens = parseInt(elements.maxTokens.value);
+}
+
+function updateModel() {
+    state.customChatSettings.model = elements.modelSelection.value;
+}
+
 // Initialize
 updatePartsTable();
+
+// Initialize chat mode based on state
+switchChatMode(state.chatMode);
+
+// Initialize custom chat settings
+elements.maxTokens.value = state.customChatSettings.maxTokens;
+elements.temperature.value = state.customChatSettings.temperature;
+elements.temperatureValue.textContent = state.customChatSettings.temperature;
+elements.modelSelection.value = state.customChatSettings.model;
 
 // Check if API key is missing and show popup if needed
 if (!state.apiKey) {

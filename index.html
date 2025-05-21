@@ -26,6 +26,44 @@
             <!-- Chat Mode Section -->
             <section id="chatSection" class="mode-section">
                 
+                <!-- Chat Mode Selector -->
+                <div class="chat-mode-selector">
+                    <button id="easyChatMode" class="chat-mode-btn active">Easy Chat</button>
+                    <button id="customChatMode" class="chat-mode-btn">Custom Chat</button>
+                </div>
+                
+                <!-- Custom Chat Settings (hidden by default) -->
+                <div id="customChatSettings" class="custom-chat-settings hidden">
+                    <div class="settings-row">
+                        <div class="settings-group">
+                            <label for="customSystemPrompt">System Prompt:</label>
+                            <div class="prompt-actions">
+                                <button id="addToSystemPrompt" class="small-btn">Add</button>
+                                <button id="replaceSystemPrompt" class="small-btn">Replace</button>
+                            </div>
+                            <textarea id="customSystemPrompt" rows="2" placeholder="Enter additional system instructions..."></textarea>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-group">
+                            <label for="maxTokens">Max Tokens:</label>
+                            <input type="number" id="maxTokens" min="100" max="4000" value="2000">
+                        </div>
+                        <div class="settings-group">
+                            <label for="temperature">Temperature:</label>
+                            <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
+                            <span id="temperatureValue">0.7</span>
+                        </div>
+                        <div class="settings-group">
+                            <label for="modelSelection">Model:</label>
+                            <select id="modelSelection">
+                                <option value="gpt-4o" selected>GPT-4o</option>
+                                <option value="gpt-4.1">GPT-4.1</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Chat Tabs -->
                 <div class="chat-tabs-container">
                     <div class="chat-tabs" id="chatTabs">
@@ -124,13 +162,7 @@
                     </div>
                 </div>
                 
-                <div class="settings-section">
-                    <h3>Mode</h3>
-                    <div class="mode-toggle">
-                        <button id="chatMode" class="mode-btn active">Chat Mode</button>
-                        <button id="identifyMode" class="mode-btn hidden">Identify Mode</button>
-                    </div>
-                </div>
+                <!-- Mode section moved to main page -->
                 
                 <div class="settings-section">
                     <h3>Chat System Prompt</h3>
