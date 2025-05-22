@@ -1501,8 +1501,8 @@ function resetAllCustomSettings() {
     
     // Reset model
     if (elements.modelSelection) {
-        elements.modelSelection.value = 'gpt-4o';
-        state.customChatSettings.model = 'gpt-4o';
+        elements.modelSelection.value = 'gpt-4.1';
+        state.customChatSettings.model = 'gpt-4.1';
     }
     
     // Reset custom system prompt
