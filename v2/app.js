@@ -272,7 +272,63 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStorageInfo();
     updateRestoreButton();
     
-    // Load presets from JSON file with explicit path
+    // Load presets directly from a hardcoded array to ensure they're available
+    state.presets = [
+        {
+            "id": "troubleshooting",
+            "name": "Troubleshooting Guide",
+            "category": "Technical",
+            "description": "Diagnose HVAC issues with step-by-step guidance",
+            "prompt": "You are an HVAC troubleshooting expert. Help diagnose issues step-by-step. Ask for symptoms, error codes, or photos of the equipment. Provide detailed repair procedures with safety precautions."
+        },
+        {
+            "id": "maintenance",
+            "name": "Maintenance Checklist",
+            "category": "Technical",
+            "description": "Create comprehensive maintenance plans for any HVAC system",
+            "prompt": "You generate comprehensive maintenance checklists for HVAC systems. For each system type/model, provide: inspection points, cleaning procedures, lubrication requirements, and testing protocols."
+        },
+        {
+            "id": "efficiency",
+            "name": "Energy Efficiency Analysis",
+            "category": "Consulting",
+            "description": "Optimize HVAC systems for maximum energy savings",
+            "prompt": "You analyze HVAC systems for energy efficiency improvements. Request system specs/age/usage patterns. Recommend upgrades, settings adjustments, and retrofits with ROI calculations."
+        },
+        {
+            "id": "parts",
+            "name": "Parts Identification",
+            "category": "Technical",
+            "description": "Identify parts and find compatible replacements",
+            "prompt": "You help identify HVAC parts from descriptions or images. Provide: part numbers, compatible alternatives, manufacturers, suppliers, and installation instructions when available."
+        },
+        {
+            "id": "installation",
+            "name": "Installation Procedures",
+            "category": "Technical",
+            "description": "Get detailed installation guides for any HVAC equipment",
+            "prompt": "You provide step-by-step HVAC installation guides. Include: tools required, safety measures, sizing calculations, ductwork design, electrical requirements, and commissioning tests."
+        },
+        {
+            "id": "refrigerant",
+            "name": "Refrigerant Handling",
+            "category": "Compliance",
+            "description": "Learn proper refrigerant procedures and regulations",
+            "prompt": "You advise on refrigerant types, charging procedures, recovery, and EPA compliance. Always emphasize safety protocols and environmental regulations."
+        }
+    ];
+    
+    console.log('Presets loaded directly:', state.presets);
+    
+    // Initialize preset selector if it exists
+    if (elements.presetPrompt) {
+        console.log('Preset prompt element found, populating selector');
+        populatePresetSelector();
+    } else {
+        console.error('Preset prompt element not found after loading presets');
+    }
+    
+    // Try to load additional presets from the JSON file
     fetch('./presets.json')
         .then(response => {
             if (!response.ok) {
@@ -281,36 +337,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            console.log('Presets loaded successfully:', data);
-            state.presets = data;
-            // Initialize preset selector if it exists
-            if (elements.presetPrompt) {
-                console.log('Preset prompt element found, populating selector');
-                populatePresetSelector();
-            } else {
-                console.error('Preset prompt element not found after loading presets');
+            console.log('Additional presets loaded successfully:', data);
+            // Only update if we got valid data
+            if (Array.isArray(data) && data.length > 0) {
+                state.presets = data;
+                // Re-initialize preset selector
+                if (elements.presetPrompt) {
+                    populatePresetSelector();
+                }
             }
         })
         .catch(error => {
-            console.error('Error loading presets:', error);
-            // Fallback to hardcoded presets if loading fails
-            state.presets = [
-                {
-                    "id": "troubleshooting",
-                    "name": "Troubleshooting Guide",
-                    "description": "Diagnose HVAC issues with step-by-step guidance",
-                    "prompt": "You are an HVAC troubleshooting expert. Help diagnose issues step-by-step."
-                },
-                {
-                    "id": "maintenance",
-                    "name": "Maintenance Checklist",
-                    "description": "Create comprehensive maintenance plans",
-                    "prompt": "You generate comprehensive maintenance checklists for HVAC systems."
-                }
-            ];
-            if (elements.presetPrompt) {
-                populatePresetSelector();
-            }
+            console.error('Error loading additional presets (using defaults):', error);
         });
 });
 
@@ -1368,19 +1406,27 @@ function populatePresetSelector() {
     
     console.log('Populating preset selector with presets:', state.presets);
     
-    // Clear existing options except the first one
+    // Clear all existing options except the first one (the placeholder)
     while (elements.presetPrompt.options.length > 1) {
         elements.presetPrompt.remove(1);
     }
     
-    // Simple approach: add all presets directly
-    state.presets.forEach(preset => {
-        const option = document.createElement('option');
-        option.value = preset.id;
-        option.textContent = preset.name;
-        option.dataset.description = preset.description || '';
-        elements.presetPrompt.appendChild(option);
-    });
+    // Simple approach first - add all presets directly to ensure they appear
+    if (state.presets.length > 0) {
+        console.log('Adding all presets directly to ensure they appear');
+        state.presets.forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.id;
+            option.textContent = preset.name;
+            if (preset.category) {
+                option.textContent = `${preset.name} (${preset.category})`;
+            }
+            option.dataset.description = preset.description || '';
+            elements.presetPrompt.appendChild(option);
+        });
+    } else {
+        console.error('No presets available to populate selector');
+    }
     
     // Set the selected value if one exists in localStorage
     if (state.selectedPreset) {
@@ -1394,7 +1440,7 @@ function populatePresetSelector() {
     // Update description for the selected preset
     updatePresetDescription();
     
-    console.log('Preset selector populated successfully');
+    console.log('Preset selector populated successfully with', elements.presetPrompt.options.length - 1, 'presets');
 }
 
 // Function to update preset description when a preset is selected
@@ -1414,8 +1460,8 @@ function updatePresetDescription() {
     }
     
     const selectedIndex = elements.presetPrompt.selectedIndex;
-    if (selectedIndex < 0) {
-        console.log('No option selected');
+    if (selectedIndex <= 0) { // Account for the placeholder option at index 0
+        console.log('No preset selected (placeholder or invalid selection)');
         presetDescription.textContent = '';
         presetDescription.classList.remove('active');
         return;
@@ -1424,8 +1470,16 @@ function updatePresetDescription() {
     const selectedOption = elements.presetPrompt.options[selectedIndex];
     console.log('Selected option:', selectedOption);
     
-    if (selectedOption && selectedOption.dataset && selectedOption.dataset.description) {
-        console.log('Description found:', selectedOption.dataset.description);
+    // Find the preset in the state.presets array to get its full details
+    const selectedPresetId = selectedOption.value;
+    const selectedPreset = state.presets.find(preset => preset.id === selectedPresetId);
+    
+    if (selectedPreset && selectedPreset.description) {
+        console.log('Description found from state:', selectedPreset.description);
+        presetDescription.textContent = selectedPreset.description;
+        presetDescription.classList.add('active');
+    } else if (selectedOption && selectedOption.dataset && selectedOption.dataset.description) {
+        console.log('Description found from dataset:', selectedOption.dataset.description);
         presetDescription.textContent = selectedOption.dataset.description;
         presetDescription.classList.add('active');
     } else {
