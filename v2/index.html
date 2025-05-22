@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hvacHat - AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>hvacHat - AI Assistant</h1>
+            <div class="header-controls">
+                <button id="settingsBtn" class="settings-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <!-- Chat Mode Section -->
+            <section id="chatSection" class="mode-section">
+                
+                <!-- Chat Mode Selector -->
+                <div class="chat-mode-selector">
+                    <button id="easyChatMode" class="chat-mode-btn active">Easy Chat</button>
+                    <button id="customChatMode" class="chat-mode-btn">Custom Chat</button>
+                </div>
+                
+                <!-- Custom Chat Settings (hidden by default) -->
+                <div id="customChatSettings" class="custom-chat-settings hidden">
+                    <div class="settings-row">
+                        <div class="settings-group">
+                            <label for="presetPrompt">Preset Prompt:</label>
+                            <select id="presetPrompt" class="enhanced-select">
+                                <option value="">Select a Preset</option>
+                                <!-- Preset options will be populated by JavaScript with categories -->
+                            </select>
+                            <div class="preset-description" id="presetDescription">
+                                <!-- Preset description will appear here when selected -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-group">
+                            <label for="customSystemPrompt">System Prompt:</label>
+                            <div class="prompt-actions">
+                                <button id="addToSystemPrompt" class="small-btn">Add</button>
+                                <button id="replaceSystemPrompt" class="small-btn">Replace</button>
+                                <button id="displaySystemPrompt" class="small-btn">Display</button>
+                            </div>
+                            <textarea id="customSystemPrompt" rows="2" placeholder="Enter additional system instructions..."></textarea>
+                            <div id="systemPromptPreview" class="system-prompt-preview hidden">
+                                <div class="preview-header">
+                                    <span>Current System Prompt:</span>
+                                    <button id="resetSystemPromptCustom" class="small-btn">Reset</button>
+                                </div>
+                                <div id="systemPromptContent" class="system-prompt-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-group">
+                            <label for="maxTokens">Max Tokens:</label>
+                            <input type="number" id="maxTokens" min="100" max="4000" value="2000">
+                        </div>
+                        <div class="settings-group">
+                            <label for="temperature">Temperature:</label>
+                            <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+                            <span id="temperatureValue">0.7</span>
+                        </div>
+                        <div class="settings-group">
+                            <label for="modelSelection">Model:</label>
+                            <select id="modelSelection">
+                                <option value="gpt-4.1" selected>GPT-4.1</option>
+                                <option value="gpt-4o">GPT-4o</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-row custom-settings-actions">
+                        <button id="resetCustomSettings" class="small-btn">♻️ Reset Custom Settings</button>
+                    </div>
+                </div>
+                
+                <!-- Chat Tabs -->
+                <div class="chat-tabs-container">
+                    <div class="chat-tabs" id="chatTabs">
+                        <!-- Tabs will be added dynamically -->
+                    </div>
+                    <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
+                </div>
+                
+                <div class="chat-container">
+                    <div id="chatMessages" class="messages"></div>
+                    <div class="input-area">
+                        <textarea id="userInput" placeholder="Type your message..."></textarea>
+                        <label for="chatImageUpload" class="image-upload-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                        </label>
+                        <input type="file" id="chatImageUpload" accept="image/*" class="hidden">
+                        <button id="sendMessage">Send</button>
+                    </div>
+                    
+                    <!-- Export Buttons -->
+                    <div class="export-buttons">
+                        <button id="exportJobHistory" class="export-btn">Export Job History</button>
+                        <button id="exportServiceTitan" class="export-btn">Export to Service Titan</button>
+                        <button id="exportHousecallPro" class="export-btn">Export to Housecall Pro</button>
+                    </div>
+                    
+                    <div class="restore-container">
+                        <button id="restoreChat" class="restore-btn" disabled>Restore Deleted Chat (0)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Identify Mode Section -->
+            <section id="identifySection" class="mode-section hidden">
+                <div class="upload-section">
+                    <div class="upload-options">
+                        <input type="file" id="imageUpload" accept="image/*" capture="environment">
+                        <button id="captureBtn">Take Photo</button>
+                        <button id="uploadBtn">Upload Image</button>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                <div id="analysisResult" class="analysis-result hidden">
+                    <h3>Part Analysis</h3>
+                    <div id="partDetails"></div>
+                    <div id="confirmationSection" class="confirmation-section hidden">
+                        <p>Is this the correct part?</p>
+                        <button id="confirmYes">Yes</button>
+                        <button id="confirmNo">No</button>
+                        <div class="quantity-section hidden">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" id="quantity" min="1" value="1">
+                            <button id="addToParts">Add to Parts List</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Parts Table Section -->
+            <section id="partsTableSection" class="parts-section hidden">
+                <h2>Parts List</h2>
+                <table id="partsTable">
+                    <thead>
+                        <tr>
+                            <th>Part Name</th>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="partsTableBody"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="closeSettings" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>API Key</h3>
+                    <div class="api-key-section">
+                        <input type="password" id="apiKey" placeholder="Enter OpenAI API Key">
+                        <button id="saveApiKey">Save API Key</button>
+                        <span id="apiStatus"></span>
+                    </div>
+                </div>
+                
+                <!-- Mode section moved to main page -->
+                
+                <div class="settings-section">
+                    <h3>Default System Prompt</h3>
+                    <textarea id="systemPrompt" rows="4">You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff.</textarea>
+                    <div class="prompt-buttons">
+                        <button id="savePrompt">Save</button>
+                        <button id="resetPrompt">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="theme-options">
+                        <button id="themeDefault" class="theme-btn active" data-theme="default">Default</button>
+                        <button id="themeBlue" class="theme-btn" data-theme="blue">Blue</button>
+                        <button id="themeGreen" class="theme-btn" data-theme="green">Green</button>
+                        <button id="themePurple" class="theme-btn" data-theme="purple">Purple</button>
+                        <button id="themeOrange" class="theme-btn" data-theme="orange">Orange</button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Storage Management</h3>
+                    <div id="storageInfo" class="storage-info">
+                        <!-- Storage info will be populated by JavaScript -->
+                    </div>
+                    
+                    <div class="storage-controls">
+                        <div class="deleted-chats-max">
+                            <label for="deletedChatsMax">Max Deleted Chats to Keep:</label>
+                            <input type="number" id="deletedChatsMax" min="0" max="50" value="5">
+                        </div>
+                        
+                        <div class="clear-storage">
+                            <button id="clearStorage" class="danger-btn">Clear Local Storage</button>
+                            <div class="clear-api-key">
+                                <input type="checkbox" id="clearApiKey">
+                                <label for="clearApiKey">Include API Key</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
