@@ -708,7 +708,7 @@ function updateChatTabs() {
         const closeBtn = tab.querySelector('.chat-tab-close');
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            deleteChat(chat.id);
+            window.deleteChat(chat.id);
         });
         
         elements.chatTabs.appendChild(tab);
@@ -759,53 +759,7 @@ function clearChatMessages() {
     elements.chatMessages.innerHTML = '';
 }
 
-function deleteChat(chatId) {
-    // Find index of chat to delete
-    const chatIndex = state.chats.findIndex(c => c.id === chatId);
-    if (chatIndex === -1) return;
-    
-    // Get the chat to delete
-    const chatToDelete = state.chats[chatIndex];
-    
-    // Add to deleted chats
-    state.deletedChats.push({
-        ...chatToDelete,
-        deletedAt: new Date().toISOString()
-    });
-    
-    // Maintain max deleted chats
-    if (state.deletedChats.length > state.deletedChatsMax) {
-        state.deletedChats.shift(); // Remove oldest deleted chat
-    }
-    
-    // Save deleted chats to local storage
-    localStorage.setItem(STORAGE_KEYS.DELETED_CHATS, JSON.stringify(state.deletedChats));
-    
-    // Remove the chat from active chats
-    state.chats.splice(chatIndex, 1);
-    
-    // If we deleted the active chat, switch to another one
-    if (state.activeChatId === chatId) {
-        if (state.chats.length > 0) {
-            // Switch to the next chat or the previous one if we deleted the last chat
-            const newIndex = Math.min(chatIndex, state.chats.length - 1);
-            state.activeChatId = state.chats[newIndex].id;
-        } else {
-            // No chats left, create a new one
-            createNewChat();
-            return; // createNewChat will handle the UI updates
-        }
-    }
-    
-    // Save to local storage
-    saveChatsToLocalStorage();
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
-    
-    // Update UI
-    updateChatTabs();
-    loadChatMessages(state.activeChatId);
-    updateRestoreButton();
-}
+// Removed local deleteChat. Use window.deleteChat from app-supabase.js instead.
 
 function restoreDeletedChat() {
     if (state.deletedChats.length === 0) return;
@@ -1125,7 +1079,7 @@ async function sendChatRequest(message, imageDataUrl = null) {
         // The worker handles the OpenAI API request and adds proper CORS headers
         
         // Replace this URL with your deployed Cloudflare Worker URL
-        const cloudflareWorkerUrl = 'https://hvachat.matthewwarrenjackson.workers.dev';
+        const cloudflareWorkerUrl = 'https://hvacHat.sitefari.com';
         
         console.log('Sending request to Cloudflare Worker proxy');
         

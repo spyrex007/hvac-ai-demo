@@ -1,0 +1,206 @@
+/* Authentication Styles */
+
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: var(--card-bg-color, #fff);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.auth-form h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: var(--primary-color, #2563eb);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group input {
+    padding: 12px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 5px;
+    font-size: 16px;
+    transition: border 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color, #2563eb);
+    outline: none;
+}
+
+.form-group small {
+    font-size: 12px;
+    color: var(--text-secondary, #666);
+}
+
+.auth-btn {
+    background-color: var(--primary-color, #2563eb);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-btn:hover {
+    background-color: var(--primary-hover, #1d4ed8);
+}
+
+.auth-btn-small {
+    background-color: var(--primary-color, #2563eb);
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-btn-small:hover {
+    background-color: var(--primary-hover, #1d4ed8);
+}
+
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.auth-links a {
+    color: var(--primary-color, #2563eb);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.auth-links a:hover {
+    color: var(--primary-hover, #1d4ed8);
+    text-decoration: underline;
+}
+
+.auth-message-container {
+    min-height: 50px;
+}
+
+.auth-error, .auth-success {
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.auth-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.auth-success {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* User info container */
+.user-info-container {
+    margin-top: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.user-email {
+    font-weight: 600;
+    color: var(--primary-color, #2563eb);
+}
+
+.migration-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.migration-status {
+    padding: 8px;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Auth visibility classes */
+.auth-logged-out .auth-logged-in-only {
+    display: none;
+}
+
+.auth-logged-in .auth-form {
+    display: none;
+}
+
+/* Dark theme compatibility */
+[data-theme="dark"] .auth-container {
+    background-color: var(--card-bg-color, #1f2937);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .auth-form h2 {
+    color: var(--primary-color, #3b82f6);
+}
+
+[data-theme="dark"] .form-group input {
+    background-color: var(--input-bg-color, #374151);
+    border-color: var(--border-color, #4b5563);
+    color: var(--text-color, #e5e7eb);
+}
+
+[data-theme="dark"] .auth-error {
+    background-color: rgba(239, 68, 68, 0.2);
+}
+
+[data-theme="dark"] .auth-success {
+    background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Responsive styles */
+@media (max-width: 480px) {
+    .auth-container {
+        margin: 20px auto;
+        padding: 20px;
+        width: 90%;
+    }
+    
+    .auth-links {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+}
