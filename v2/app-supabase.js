@@ -392,7 +392,7 @@ async function deleteChat(chatId) {
 }
 
 // Restore deleted chat
-async function restoreDeletedChat() {
+async function handleRestoreDeletedChat() {
     if (state.deletedChats.length === 0) return;
     
     // Get the most recently deleted chat
@@ -591,7 +591,7 @@ window.handleDrop = handleDrop;
 window.createNewChat = createNewChat;
 window.switchToChat = switchToChat;
 window.deleteChat = deleteChat;
-window.restoreDeletedChat = restoreDeletedChat;
+window.restoreDeletedChat = handleRestoreDeletedChat;
 window.handleSendMessage = handleSendMessage;
 window.openSettingsModal = openSettingsModal;
 window.closeSettingsModal = closeSettingsModal;
