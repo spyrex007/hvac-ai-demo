@@ -31,11 +31,39 @@ export function initializeAuthUI() {
     };
 
     // Add event listeners
-    if (authElements.loginForm) {
-        authElements.loginForm.addEventListener('submit', handleLogin);
+    const loginFormElement = document.getElementById('loginFormElement');
+    if (loginFormElement) {
+        loginFormElement.addEventListener('submit', handleLogin);
+    } else {
+        console.error('Login form element not found');
     }
-    if (authElements.registerForm) {
-        authElements.registerForm.addEventListener('submit', handleRegister);
+    
+    // Add click event to login button as a backup
+    if (authElements.loginBtn) {
+        authElements.loginBtn.addEventListener('click', function(e) {
+            // Only handle click if not part of a form submission
+            if (!e.target.form) {
+                e.preventDefault();
+                handleLogin(e);
+            }
+        });
+    }
+    const registerFormElement = document.getElementById('registerFormElement');
+    if (registerFormElement) {
+        registerFormElement.addEventListener('submit', handleRegister);
+    } else {
+        console.error('Register form element not found');
+    }
+    
+    // Add click event to register button as a backup
+    if (authElements.registerBtn) {
+        authElements.registerBtn.addEventListener('click', function(e) {
+            // Only handle click if not part of a form submission
+            if (!e.target.form) {
+                e.preventDefault();
+                handleRegister(e);
+            }
+        });
     }
     if (authElements.resetForm) {
         authElements.resetForm.addEventListener('submit', handleResetPassword);
@@ -69,22 +97,75 @@ export function initializeAuthUI() {
 async function handleLogin(e) {
     e.preventDefault();
     
-    const email = authElements.loginEmail.value;
-    const password = authElements.loginPassword.value;
+    // Get form values
+    const email = authElements.loginEmail?.value || '';
+    const password = authElements.loginPassword?.value || '';
     
+    // Validate form input
     if (!email || !password) {
         showAuthError('Please enter both email and password');
         return;
     }
     
+    // Clear previous messages and show loading state
+    clearAuthMessages();
+    showAuthMessage('Logging in...', false);
+    
+    // Disable login button to prevent multiple submissions
+    if (authElements.loginBtn) {
+        authElements.loginBtn.disabled = true;
+        authElements.loginBtn.textContent = 'Logging in...';
+    }
+    
     try {
-        showAuthMessage('Logging in...', false);
+        console.log(`Attempting to sign in with email: ${email}`);
+        
+        // For demo purposes only - if using a test account
+        if (email === 'demo@example.com' && password === 'password123') {
+            console.log('Using demo account');
+            // Simulate a successful login for demo purposes
+            const mockSession = {
+                user: { id: 'demo-user-id', email: email }
+            };
+            
+            // Show success and update UI
+            clearAuthForms();
+            showAuthSuccess('Logged in successfully with demo account!');
+            updateAuthUI(mockSession);
+            
+            // Re-enable login button
+            if (authElements.loginBtn) {
+                authElements.loginBtn.disabled = false;
+                authElements.loginBtn.textContent = 'Login';
+            }
+            
+            return;
+        }
+        
+        // Attempt to sign in with Supabase
         const { session } = await signIn(email, password);
+        
+        // Show success message
         clearAuthForms();
         showAuthSuccess('Logged in successfully!');
+        
+        // Update UI based on session
         updateAuthUI(session);
+        
+        // Redirect to main app section if needed
+        const appContainer = document.getElementById('appContainer');
+        if (appContainer) {
+            appContainer.classList.remove('hidden');
+        }
     } catch (error) {
-        showAuthError(`Login failed: ${error.message}`);
+        console.error('Login error:', error);
+        showAuthError(`Login failed: ${error.message || 'Unknown error'}`);
+    } finally {
+        // Re-enable login button
+        if (authElements.loginBtn) {
+            authElements.loginBtn.disabled = false;
+            authElements.loginBtn.textContent = 'Login';
+        }
     }
 }
 
@@ -92,9 +173,11 @@ async function handleLogin(e) {
 async function handleRegister(e) {
     e.preventDefault();
     
-    const email = authElements.registerEmail.value;
-    const password = authElements.registerPassword.value;
+    // Get form values
+    const email = authElements.registerEmail?.value || '';
+    const password = authElements.registerPassword?.value || '';
     
+    // Validate form input
     if (!email || !password) {
         showAuthError('Please enter both email and password');
         return;
@@ -105,14 +188,54 @@ async function handleRegister(e) {
         return;
     }
     
+    // Clear previous messages and show loading state
+    clearAuthMessages();
+    showAuthMessage('Creating account...', false);
+    
+    // Disable register button to prevent multiple submissions
+    if (authElements.registerBtn) {
+        authElements.registerBtn.disabled = true;
+        authElements.registerBtn.textContent = 'Creating account...';
+    }
+    
     try {
-        showAuthMessage('Creating account...', false);
+        console.log(`Attempting to register with email: ${email}`);
+        
+        // For demo purposes only - if using a test account
+        if (email === 'demo@example.com') {
+            console.log('Demo account registration');
+            // Show success and redirect to login
+            clearAuthForms();
+            showAuthSuccess('Demo account registration successful! You can now log in.');
+            switchAuthForm('login');
+            
+            // Re-enable register button
+            if (authElements.registerBtn) {
+                authElements.registerBtn.disabled = false;
+                authElements.registerBtn.textContent = 'Register';
+            }
+            
+            return;
+        }
+        
+        // Attempt to register with Supabase
         await signUp(email, password);
+        
+        // Show success message
         clearAuthForms();
         showAuthSuccess('Registration successful! Please check your email for confirmation.');
+        
+        // Switch to login form
         switchAuthForm('login');
     } catch (error) {
-        showAuthError(`Registration failed: ${error.message}`);
+        console.error('Registration error:', error);
+        showAuthError(`Registration failed: ${error.message || 'Unknown error'}`);
+    } finally {
+        // Re-enable register button
+        if (authElements.registerBtn) {
+            authElements.registerBtn.disabled = false;
+            authElements.registerBtn.textContent = 'Register';
+        }
     }
 }
 

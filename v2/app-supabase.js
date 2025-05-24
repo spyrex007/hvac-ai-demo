@@ -342,7 +342,7 @@ async function addMessageToChat(role, content, isHtml = false) {
 }
 
 // Delete chat
-async function deleteChat(chatId) {
+async function handleDeleteChat(chatId) {
     // Find the chat in the state
     const chatIndex = state.chats.findIndex(chat => chat.id === chatId);
     if (chatIndex === -1) return;
@@ -590,7 +590,7 @@ window.handleDragLeave = handleDragLeave;
 window.handleDrop = handleDrop;
 window.createNewChat = createNewChat;
 window.switchToChat = switchToChat;
-window.deleteChat = deleteChat;
+window.deleteChat = handleDeleteChat;
 window.restoreDeletedChat = handleRestoreDeletedChat;
 window.handleSendMessage = handleSendMessage;
 window.openSettingsModal = openSettingsModal;
