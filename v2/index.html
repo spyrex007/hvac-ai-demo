@@ -88,10 +88,6 @@
                 <span id="userInfo" class="user-email"></span>
                 <button id="logoutBtn" class="auth-btn-small">Logout</button>
             </div>
-            <div class="migration-container">
-                <button id="migrationBtn" class="auth-btn-small">Migrate Local Data to Cloud</button>
-                <div id="migrationStatus" class="migration-status hidden"></div>
-            </div>
         </div>
     </div>
 
@@ -325,9 +321,12 @@
     <!-- Script imports -->
     <script type="module" src="supabase.js"></script>
     <script type="module" src="auth.js"></script>
+    <script type="module" src="auth-ui.js"></script>
     <script type="module" src="migration.js"></script>
     <script type="module" src="data-service.js"></script>
-    <script type="module" src="app-supabase.js"></script>
+    <script type="module" src="crud-operations.js"></script>
+    <script type="module" src="state-manager.js"></script>
+    <script type="module" src="app-integrator.js"></script>
     <script type="module">
       import { initializeAuthUI } from './auth-ui.js';
       initializeAuthUI();
