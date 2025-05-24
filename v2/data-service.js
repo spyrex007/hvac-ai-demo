@@ -36,11 +36,15 @@ export async function saveUserSettings(settings) {
     try {
         const user = await ensureAuthenticated();
         
+        // Create a copy of settings without the api_key
+        const safeSettings = { ...settings };
+        delete safeSettings.api_key; // Never store API key in Supabase
+        
         const { error } = await supabase
             .from('user_settings')
             .upsert({
                 id: user.id,
-                ...settings
+                ...safeSettings
             });
             
         if (error) throw error;

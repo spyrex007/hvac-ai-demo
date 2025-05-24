@@ -6,13 +6,16 @@
     padding: 30px;
     background-color: var(--card-bg-color, #fff);
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .auth-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    transition: all 0.3s ease;
 }
 
 .auth-form h2 {
@@ -64,6 +67,8 @@
 
 .auth-btn:hover {
     background-color: var(--primary-hover, #1d4ed8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .auth-btn-small {
@@ -97,6 +102,77 @@
 .auth-links a:hover {
     color: var(--primary-hover, #1d4ed8);
     text-decoration: underline;
+    transform: translateX(2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Form transitions */
+.auth-form {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.auth-form.hidden {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* User info styling */
+.user-info-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(37, 99, 235, 0.1);
+    border-radius: 8px;
+    animation: slideIn 0.5s ease-out;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-email {
+    font-weight: 600;
+    color: var(--primary-color, #2563eb);
+}
+
+/* Migration button styling */
+#migrationBtn {
+    margin-top: 15px;
+    background-color: #10b981;
+    transition: all 0.3s ease;
+}
+
+#migrationBtn:hover {
+    background-color: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Migration status styling */
+#migrationStatus {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    animation: fadeIn 0.5s ease-out;
 }
 
 .auth-message-container {

@@ -358,63 +358,71 @@ async function checkAuthState() {
 }
 
 // Update UI based on authentication state
-function updateAuthUI(session) {
-    const isLoggedIn = !!session;
+async function updateAuthUI(session) {
+    const isAuthenticated = !!session;
     
     // Toggle auth container visibility
     if (authElements.authContainer) {
-        if (isLoggedIn) {
-            authElements.authContainer.classList.add('auth-logged-in');
-            authElements.authContainer.classList.remove('auth-logged-out');
-        } else {
-            authElements.authContainer.classList.remove('auth-logged-in');
-            authElements.authContainer.classList.add('auth-logged-out');
-            switchAuthForm('login');
-        }
+        authElements.authContainer.classList.toggle('auth-logged-in', isAuthenticated);
+        authElements.authContainer.classList.toggle('auth-logged-out', !isAuthenticated);
     }
     
     // Toggle app container visibility
     const appContainer = document.getElementById('appContainer');
     if (appContainer) {
-        if (isLoggedIn) {
-            appContainer.classList.remove('hidden');
+        if (isAuthenticated) {
+            // Smooth transition to app
+            setTimeout(() => {
+                appContainer.classList.remove('hidden');
+                // Add animation class
+                appContainer.classList.add('fade-in');
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    appContainer.classList.remove('fade-in');
+                }, 500);
+            }, 300);
         } else {
             appContainer.classList.add('hidden');
         }
     }
     
-    // Update user info display if logged in
-    const userInfo = document.getElementById('userInfo');
-    if (userInfo && session && session.user) {
-        userInfo.textContent = session.user.email;
-        userInfo.classList.remove('hidden');
-    } else if (userInfo) {
-        userInfo.classList.add('hidden');
+    // Update user info
+    if (isAuthenticated) {
+        const userInfoElement = document.getElementById('userInfo');
+        if (userInfoElement) {
+            userInfoElement.textContent = session.user.email;
+        }
+        
+        // Show welcome message
+        showAuthSuccess(`Welcome, ${session.user.email.split('@')[0]}!`);
+        
+        // Check for local data to migrate
+        const hasLocalData = localStorage.getItem('chats') || localStorage.getItem('settings');
+        if (hasLocalData && authElements.migrationBtn) {
+            authElements.migrationBtn.classList.remove('hidden');
+            showAuthMessage('You have local data that can be migrated to your account', false);
+        }
+        
+        // Toggle migration button visibility
+        if (authElements.migrationBtn) {
+            const hasLocalData = checkForLocalData();
+            authElements.migrationBtn.classList.toggle('hidden', !hasLocalData);
+        }
+        
+        // Trigger app data loading if logged in
+        if (typeof window.loadUserStateFromSupabase === 'function') {
+            window.loadUserStateFromSupabase(session.user.id);
+        }
     }
     
     // Toggle logout button visibility
     if (authElements.logoutBtn) {
-        if (isLoggedIn) {
-            authElements.logoutBtn.classList.remove('hidden');
-        } else {
-            authElements.logoutBtn.classList.add('hidden');
-        }
+        authElements.logoutBtn.classList.toggle('hidden', !isAuthenticated);
     }
     
-    // Toggle migration button visibility
-    if (authElements.migrationBtn) {
-        if (isLoggedIn) {
-            authElements.migrationBtn.classList.remove('hidden');
-        } else {
-            authElements.migrationBtn.classList.add('hidden');
-        }
-    }
-    
-    // Trigger app data loading if logged in
-    if (isLoggedIn && session && session.user) {
-        if (typeof loadUserStateFromSupabase === 'function') {
-            loadUserStateFromSupabase(session.user.id);
-        }
+    // Show appropriate form when not authenticated
+    if (!isAuthenticated) {
+        switchAuthForm('login');
     }
 }
 
@@ -464,19 +472,21 @@ function clearAuthMessages() {
 
 // Clear auth form inputs
 function clearAuthForms() {
-    if (authElements.loginEmail) {
-        authElements.loginEmail.value = '';
-    }
-    if (authElements.loginPassword) {
-        authElements.loginPassword.value = '';
-    }
-    if (authElements.registerEmail) {
-        authElements.registerEmail.value = '';
-    }
-    if (authElements.registerPassword) {
-        authElements.registerPassword.value = '';
-    }
-    if (authElements.resetEmail) {
-        authElements.resetEmail.value = '';
-    }
+    if (authElements.loginEmail) authElements.loginEmail.value = '';
+    if (authElements.loginPassword) authElements.loginPassword.value = '';
+    if (authElements.registerEmail) authElements.registerEmail.value = '';
+    if (authElements.registerPassword) authElements.registerPassword.value = '';
+    if (authElements.resetEmail) authElements.resetEmail.value = '';
+}
+
+// Check if there is local data that can be migrated to Supabase
+function checkForLocalData() {
+    // Check for any localStorage data that should be migrated
+    const hasChats = localStorage.getItem('chats') !== null;
+    const hasSettings = localStorage.getItem('apiKey') !== null || 
+                       localStorage.getItem('systemPrompt') !== null || 
+                       localStorage.getItem('theme') !== null;
+    const hasPartsList = localStorage.getItem('partsList') !== null;
+    
+    return hasChats || hasSettings || hasPartsList;
 }

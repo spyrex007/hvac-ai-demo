@@ -48,7 +48,10 @@ export async function migrateUserDataToSupabase(userId) {
  * @param {string} userId - The user's ID from Supabase
  */
 async function migrateUserSettings(userId) {
+    // Keep API key in localStorage only, don't migrate to Supabase
     const apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
+    
+    // These settings will be migrated to Supabase
     const systemPrompt = localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || '';
     const customSystemPrompt = localStorage.getItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT) || '';
     const theme = localStorage.getItem(STORAGE_KEYS.THEME) || 'default';
@@ -62,7 +65,7 @@ async function migrateUserSettings(userId) {
         .from('user_settings')
         .upsert({
             id: userId,
-            api_key: apiKey,
+            // api_key is intentionally not stored in Supabase for security
             system_prompt: systemPrompt,
             custom_system_prompt: customSystemPrompt,
             theme: theme,

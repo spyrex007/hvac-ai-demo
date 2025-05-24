@@ -3,10 +3,9 @@
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- User Settings Table
+-- User Settings Table (API key removed for security)
 CREATE TABLE IF NOT EXISTS user_settings (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
-  api_key TEXT,
   system_prompt TEXT,
   custom_system_prompt TEXT,
   theme TEXT,

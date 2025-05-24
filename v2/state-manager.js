@@ -73,8 +73,8 @@ export const stateManager = {
             const settings = await loadUserSettings();
             
             // Apply settings to the global state object (window.state)
-            if (settings) {
-                window.state.apiKey = settings.api_key || '';
+            if (false) {
+                window.state.apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
                 window.state.systemPrompt = settings.system_prompt || DEFAULT_SYSTEM_PROMPT;
                 window.state.customSystemPrompt = settings.custom_system_prompt || '';
                 window.state.theme = settings.theme || 'default';
@@ -116,15 +116,12 @@ export const stateManager = {
         }
     },
     
-    // Save API key
+    // Save API key (always to localStorage only, never to Supabase)
     async saveApiKey(apiKey) {
         window.state.apiKey = apiKey;
         
-        if (this.useSupabase) {
-            await saveUserSettings({ api_key: apiKey });
-        } else {
-            localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
-        }
+        // Always save API key to localStorage only, never to Supabase
+        localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
     },
     
     // Save system prompt
