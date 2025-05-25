@@ -5,8 +5,9 @@
  * eliminating the need for the Cloudflare proxy.
  */
 
-// Import express if not already using ESM
+// Import express and node-fetch for making HTTP requests
 const express = require('express');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const router = express.Router();
 
 // OpenAI API endpoint
