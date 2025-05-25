@@ -29,6 +29,14 @@ export function initializeAuthUI() {
         migrationBtn: document.getElementById('migrationBtn'),
         migrationStatus: document.getElementById('migrationStatus')
     };
+    
+    // Initially hide the auth container until API key is verified
+    if (authElements.authContainer) {
+        authElements.authContainer.style.display = 'none';
+    }
+    
+    // Check if API key exists
+    checkApiKeyAndUpdateUI();
 
     // Add event listeners
     const loginFormElement = document.getElementById('loginFormElement');
@@ -346,14 +354,77 @@ function switchAuthForm(formType) {
     }
 }
 
+// Function to check if API key exists and update UI accordingly
+function checkApiKeyAndUpdateUI() {
+    // Get API key from localStorage
+    const apiKey = localStorage.getItem('hvac_ai_api_key');
+    
+    // If API key exists, show auth container, otherwise keep it hidden
+    if (authElements.authContainer) {
+        if (apiKey) {
+            authElements.authContainer.style.display = 'block';
+            // Now check authentication state
+            checkAuthState();
+        } else {
+            authElements.authContainer.style.display = 'none';
+            // Show app container but with API key required message
+            const appContainer = document.getElementById('appContainer');
+            if (appContainer) {
+                appContainer.classList.remove('hidden');
+                // If there's a function to show API key required popup, call it
+                if (typeof window.showApiKeyRequiredPopup === 'function') {
+                    window.showApiKeyRequiredPopup();
+                }
+            }
+        }
+    }
+    
+    // Listen for API key changes
+    window.addEventListener('apiKeyUpdated', function() {
+        // When API key is updated, show auth container
+        if (authElements.authContainer) {
+            authElements.authContainer.style.display = 'block';
+            checkAuthState();
+        }
+    });
+}
+
 // Check authentication state
 async function checkAuthState() {
     try {
+        // Hide auth container initially to prevent flash of login form
+        if (authElements.authContainer) {
+            authElements.authContainer.style.visibility = 'hidden';
+        }
+        
         const user = await getCurrentUser();
-        updateAuthUI(user ? { user } : null);
+        
+        if (user) {
+            // User is authenticated, update UI accordingly
+            updateAuthUI({ user });
+            
+            // Show app container immediately if user is authenticated
+            const appContainer = document.getElementById('appContainer');
+            if (appContainer) {
+                appContainer.classList.remove('hidden');
+            }
+        } else {
+            // No authenticated user
+            updateAuthUI(null);
+        }
+        
+        // Make auth container visible again with proper state
+        if (authElements.authContainer) {
+            authElements.authContainer.style.visibility = 'visible';
+        }
     } catch (error) {
         console.error('Auth state check failed:', error);
         updateAuthUI(null);
+        
+        // Make auth container visible again in case of error
+        if (authElements.authContainer) {
+            authElements.authContainer.style.visibility = 'visible';
+        }
     }
 }
 
@@ -361,26 +432,36 @@ async function checkAuthState() {
 async function updateAuthUI(session) {
     const isAuthenticated = !!session;
     
-    // Toggle auth container visibility
+    // Toggle auth container visibility and classes
     if (authElements.authContainer) {
         authElements.authContainer.classList.toggle('auth-logged-in', isAuthenticated);
         authElements.authContainer.classList.toggle('auth-logged-out', !isAuthenticated);
+        
+        // Ensure auth forms are properly hidden when authenticated
+        if (isAuthenticated) {
+            if (authElements.loginForm) authElements.loginForm.classList.add('hidden');
+            if (authElements.registerForm) authElements.registerForm.classList.add('hidden');
+            if (authElements.resetForm) authElements.resetForm.classList.add('hidden');
+        }
     }
     
     // Toggle app container visibility
     const appContainer = document.getElementById('appContainer');
     if (appContainer) {
         if (isAuthenticated) {
-            // Smooth transition to app
-            setTimeout(() => {
-                appContainer.classList.remove('hidden');
-                // Add animation class
+            // Make sure app container is visible immediately on refresh
+            appContainer.classList.remove('hidden');
+            
+            // Only add animation if this isn't from a page refresh
+            // We can detect this by checking if the app container was already visible
+            if (appContainer.classList.contains('hidden')) {
+                // Smooth transition to app
                 appContainer.classList.add('fade-in');
                 // Remove animation class after animation completes
                 setTimeout(() => {
                     appContainer.classList.remove('fade-in');
                 }, 500);
-            }, 300);
+            }
         } else {
             appContainer.classList.add('hidden');
         }

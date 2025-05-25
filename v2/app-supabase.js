@@ -257,6 +257,14 @@ async function handleSaveApiKey() {
     }
     
     elements.apiStatus.textContent = '✓ API Key Saved';
+    
+    // Close settings modal if it's open
+    if (typeof closeSettingsModal === 'function') {
+        closeSettingsModal();
+    }
+    
+    // Dispatch event to notify that API key has been updated
+    window.dispatchEvent(new CustomEvent('apiKeyUpdated'));
 }
 
 // Chat creation and management

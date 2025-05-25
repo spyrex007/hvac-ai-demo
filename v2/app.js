@@ -93,9 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         presetPrompt: document.getElementById('presetPrompt'),
 
         newChatBtn: document.getElementById('newChatBtn'),
-        exportJobHistory: document.getElementById('exportJobHistory'),
-        exportServiceTitan: document.getElementById('exportServiceTitan'),
-        exportHousecallPro: document.getElementById('exportHousecallPro'),
+
         // Settings modal elements
         settingsBtn: document.getElementById('settingsBtn'),
         settingsModal: document.getElementById('settingsModal'),
@@ -246,11 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Export button event listeners (no functionality yet)
-    elements.exportJobHistory.addEventListener('click', () => console.log('Export Job History clicked'));
-    elements.exportServiceTitan.addEventListener('click', () => console.log('Export to Service Titan clicked'));
-    elements.exportHousecallPro.addEventListener('click', () => console.log('Export to Housecall Pro clicked'));
-
         // Initialize parts table
     if (elements.partsTableBody) {
         updatePartsTable();
@@ -361,6 +354,12 @@ function handleSaveApiKey() {
         localStorage.setItem(STORAGE_KEYS.API_KEY, apiKey);
         elements.apiStatus.textContent = '✓ API Key Saved';
         elements.apiStatus.className = '';
+        
+        // Close settings modal if it's open
+        closeSettingsModal();
+        
+        // Dispatch event to notify that API key has been updated
+        window.dispatchEvent(new CustomEvent('apiKeyUpdated'));
     } else {
         elements.apiStatus.textContent = '✗ Invalid API Key';
         elements.apiStatus.className = 'error';
