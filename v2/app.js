@@ -1075,15 +1075,17 @@ async function sendChatRequest(message, imageDataUrl = null) {
             });
         }
         
-        // Use Cloudflare Worker as a proxy to handle CORS issues
-        // The worker handles the OpenAI API request and adds proper CORS headers
+        // Use Vercel API route to handle OpenAI API communication
+        // This eliminates the need for a Cloudflare Worker proxy
         
-        // Replace this URL with your deployed Cloudflare Worker URL
-        const cloudflareWorkerUrl = 'https://hvacHat.sitefari.com';
+        // API endpoint will be relative in production or absolute in development
+        const apiEndpoint = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3000/api/openai'
+            : '/api/openai';
         
-        console.log('Sending request to Cloudflare Worker proxy');
+        console.log('Sending request to OpenAI API via Vercel API route');
         
-        const response = await fetch(cloudflareWorkerUrl, {
+        const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${state.apiKey}`,

@@ -73,7 +73,7 @@ export const stateManager = {
             const settings = await loadUserSettings();
             
             // Apply settings to the global state object (window.state)
-            if (false) {
+            if (settings) {
                 window.state.apiKey = localStorage.getItem(STORAGE_KEYS.API_KEY) || '';
                 window.state.systemPrompt = settings.system_prompt || DEFAULT_SYSTEM_PROMPT;
                 window.state.customSystemPrompt = settings.custom_system_prompt || '';
@@ -102,10 +102,10 @@ export const stateManager = {
             }
             
             // Load deleted chats
-            const deletedChats = await loadDeletedChats(window.state.deletedChatsMax);
-            if (deletedChats && deletedChats.length > 0) {
-                window.state.deletedChats = deletedChats;
-            }
+           // const deletedChats = await loadDeletedChats(window.state.deletedChatsMax);
+           // if (deletedChats && deletedChats.length > 0) {
+           //     window.state.deletedChats = deletedChats;
+           // }
             
             this.isDataLoaded = true;
             return true;

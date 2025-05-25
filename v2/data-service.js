@@ -21,13 +21,19 @@ export async function loadUserSettings() {
             .select('*')
             .eq('id', user.id)
             .single();
-            
-        if (error) throw error;
-        
-        return data || {};
+
+        // Handle "no rows" error gracefully
+        if (error) {
+            if (error.code === 'PGRST116') {
+                // No user settings row exists yet
+                return null;
+            }
+            throw error;
+        }
+        return data || null;
     } catch (error) {
         console.error('Error loading user settings:', error);
-        return {};
+        return null;
     }
 }
 
