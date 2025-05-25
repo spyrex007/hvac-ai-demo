@@ -971,6 +971,9 @@ async function handleSendMessage() {
 
 async function sendChatRequest(message, imageDataUrl = null) {
     try {
+        // Add a loading indicator while waiting for the AI response
+        const loadingIndicatorId = addLoadingIndicator();
+        
         // Choose the appropriate system prompt based on chat mode
         const promptToUse = (state.chatMode === 'custom' && state.customSystemPrompt) ? 
                            state.customSystemPrompt : state.systemPrompt;
@@ -1138,10 +1141,16 @@ async function sendChatRequest(message, imageDataUrl = null) {
             throw new Error(data.error.message || 'Unknown API error');
         }
 
+        // Remove the loading indicator
+        removeLoadingIndicator();
+        
         const aiResponse = data.choices[0].message.content;
         addMessageToChat('assistant', aiResponse);
         
     } catch (error) {
+        // Remove the loading indicator on error
+        removeLoadingIndicator();
+        
         console.error('Error in sendChatRequest:', error);
         addMessageToChat('assistant', `Error: ${error.message}. Please check the console for more details.`);
     }
@@ -1213,6 +1222,41 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// AI Loading Indicator Functions
+function addLoadingIndicator() {
+    const loadingId = 'ai-loading-indicator';
+    
+    // Create loading indicator element
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = loadingId;
+    loadingDiv.classList.add('message', 'assistant-message', 'loading-message');
+    
+    // Add the thinking animation with dots
+    loadingDiv.innerHTML = `
+        <div class="thinking-indicator">
+            <span>Thinking</span>
+            <span class="dot-animation">
+                <span class="dot">.</span>
+                <span class="dot">.</span>
+                <span class="dot">.</span>
+            </span>
+        </div>
+    `;
+    
+    // Add to DOM
+    elements.chatMessages.appendChild(loadingDiv);
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    
+    return loadingId;
+}
+
+function removeLoadingIndicator() {
+    const loadingIndicator = document.getElementById('ai-loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+    }
 }
 
 async function fileToBase64(file) {
