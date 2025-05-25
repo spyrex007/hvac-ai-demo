@@ -1303,8 +1303,15 @@ function applyTheme(theme) {
 
 // Function to show API key required popup
 function showApiKeyRequiredPopup() {
+    // Check if popup already exists to prevent duplicates
+    const existingPopup = document.querySelector('.api-key-popup');
+    if (existingPopup) {
+        existingPopup.remove(); // Remove existing popup before creating a new one
+    }
+    
     // Create popup container
     const popupContainer = document.createElement('div');
+    popupContainer.id = 'apiKeyPopup'; // Add an ID for easier reference
     popupContainer.className = 'api-key-popup';
     
     // Create popup content
@@ -1327,10 +1334,17 @@ function showApiKeyRequiredPopup() {
     const okayButton = document.createElement('button');
     okayButton.textContent = 'Okay';
     okayButton.className = 'primary-button'; // Make it stand out as the primary action
-    okayButton.onclick = () => {
-        popupContainer.remove();
-        openSettingsModal(); // Open settings when Okay is clicked
-    };
+    
+    // Use a more reliable event handler
+    okayButton.addEventListener('click', function() {
+        // First remove the popup
+        const popup = document.getElementById('apiKeyPopup');
+        if (popup) {
+            popup.parentNode.removeChild(popup);
+        }
+        // Then open settings modal
+        setTimeout(() => openSettingsModal(), 50); // Small delay to ensure popup is gone
+    });
     
     // Assemble the popup
     buttonContainer.appendChild(okayButton); // Only add the Okay button

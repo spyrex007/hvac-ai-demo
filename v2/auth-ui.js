@@ -365,28 +365,46 @@ function checkApiKeyAndUpdateUI() {
             authElements.authContainer.style.display = 'block';
             // Now check authentication state
             checkAuthState();
+            
+            // Remove any existing API key popup if the API key exists
+            const existingPopup = document.getElementById('apiKeyPopup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
         } else {
             authElements.authContainer.style.display = 'none';
             // Show app container but with API key required message
             const appContainer = document.getElementById('appContainer');
             if (appContainer) {
                 appContainer.classList.remove('hidden');
-                // If there's a function to show API key required popup, call it
-                if (typeof window.showApiKeyRequiredPopup === 'function') {
+                
+                // Check if popup already exists before showing a new one
+                const existingPopup = document.getElementById('apiKeyPopup');
+                if (!existingPopup && typeof window.showApiKeyRequiredPopup === 'function') {
+                    // Only show popup if it doesn't already exist
                     window.showApiKeyRequiredPopup();
                 }
             }
         }
     }
     
-    // Listen for API key changes
-    window.addEventListener('apiKeyUpdated', function() {
+    // Remove any existing event listeners to prevent duplicates
+    const existingListener = window._apiKeyUpdatedListener;
+    if (existingListener) {
+        window.removeEventListener('apiKeyUpdated', existingListener);
+    }
+    
+    // Create a new listener and store a reference to it
+    window._apiKeyUpdatedListener = function() {
         // When API key is updated, show auth container
         if (authElements.authContainer) {
             authElements.authContainer.style.display = 'block';
             checkAuthState();
         }
-    });
+    };
+    
+    // Add the new listener
+    window.addEventListener('apiKeyUpdated', window._apiKeyUpdatedListener);
 }
 
 // Check authentication state
