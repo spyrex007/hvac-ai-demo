@@ -1323,25 +1323,17 @@ function showApiKeyRequiredPopup() {
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'api-key-popup-buttons';
     
-    // Add settings button
-    const settingsButton = document.createElement('button');
-    settingsButton.textContent = 'Open Settings';
-    settingsButton.className = 'primary-button';
-    settingsButton.onclick = () => {
-        popupContainer.remove();
-        openSettingsModal();
-    };
-    
-    // Add okay button
+    // Add only an okay button that opens settings
     const okayButton = document.createElement('button');
     okayButton.textContent = 'Okay';
+    okayButton.className = 'primary-button'; // Make it stand out as the primary action
     okayButton.onclick = () => {
         popupContainer.remove();
+        openSettingsModal(); // Open settings when Okay is clicked
     };
     
     // Assemble the popup
-    buttonContainer.appendChild(settingsButton);
-    buttonContainer.appendChild(okayButton);
+    buttonContainer.appendChild(okayButton); // Only add the Okay button
     
     popupContent.appendChild(header);
     popupContent.appendChild(message);
