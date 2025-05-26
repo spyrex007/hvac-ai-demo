@@ -42,12 +42,16 @@
         </div>
 
         <!-- Register Form -->
-        <div id="registerForm" class="auth-form hidden">
+        <div id="registerForm" class="auth-form">
             <form id="registerFormElement">
                 <h2>Create an Account</h2>
                 <div class="auth-message-container">
                     <div id="authError" class="auth-error hidden"></div>
                     <div id="authSuccess" class="auth-success hidden"></div>
+                </div>
+                <div class="form-group">
+                    <label for="registerName">Name</label>
+                    <input type="text" id="registerName" placeholder="Enter your name" required>
                 </div>
                 <div class="form-group">
                     <label for="registerEmail">Email</label>

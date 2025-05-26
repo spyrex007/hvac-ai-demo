@@ -30,13 +30,12 @@ export function initializeAuthUI() {
         migrationStatus: document.getElementById('migrationStatus')
     };
     
-    // Initially hide the auth container until API key is verified
+    // Always show the auth container with register form by default
     if (authElements.authContainer) {
-        authElements.authContainer.style.display = 'none';
+        authElements.authContainer.style.display = 'block';
+        // Show register form by default
+        switchAuthForm('register');
     }
-    
-    // Check if API key exists
-    checkApiKeyAndUpdateUI();
 
     // Add event listeners
     const loginFormElement = document.getElementById('loginFormElement');
@@ -184,8 +183,15 @@ async function handleRegister(e) {
     // Get form values
     const email = authElements.registerEmail?.value || '';
     const password = authElements.registerPassword?.value || '';
+    const nameInput = document.getElementById('registerName');
+    const name = nameInput ? nameInput.value || '' : '';
     
     // Validate form input
+    if (!name) {
+        showAuthError('Please enter your name');
+        return;
+    }
+    
     if (!email || !password) {
         showAuthError('Please enter both email and password');
         return;
@@ -336,75 +342,31 @@ function switchAuthForm(formType) {
     clearAuthMessages();
     
     switch (formType) {
-        case 'login':
-            if (authElements.loginForm) {
-                authElements.loginForm.classList.remove('hidden');
-            }
-            break;
-        case 'register':
-            if (authElements.registerForm) {
-                authElements.registerForm.classList.remove('hidden');
-            }
-            break;
-        case 'reset':
-            if (authElements.resetForm) {
-                authElements.resetForm.classList.remove('hidden');
-            }
-            break;
-    }
+    case 'login':
+        if (authElements.loginForm) {
+            authElements.loginForm.classList.remove('hidden');
+        }
+        break;
+    case 'register':
+        if (authElements.registerForm) {
+            authElements.registerForm.classList.remove('hidden');
+        }
+        break;
+    case 'reset':
+        if (authElements.resetForm) {
+            authElements.resetForm.classList.remove('hidden');
+        }
+        break;
+}
 }
 
-// Function to check if API key exists and update UI accordingly
+// Function to check authentication state only (no API key check)
 function checkApiKeyAndUpdateUI() {
-    // Get API key from localStorage
-    const apiKey = localStorage.getItem('hvac_ai_api_key');
-    
-    // If API key exists, show auth container, otherwise keep it hidden
+    // Just check authentication state
     if (authElements.authContainer) {
-        if (apiKey) {
-            authElements.authContainer.style.display = 'block';
-            // Now check authentication state
-            checkAuthState();
-            
-            // Remove any existing API key popup if the API key exists
-            const existingPopup = document.getElementById('apiKeyPopup');
-            if (existingPopup) {
-                existingPopup.remove();
-            }
-        } else {
-            authElements.authContainer.style.display = 'none';
-            // Show app container but with API key required message
-            const appContainer = document.getElementById('appContainer');
-            if (appContainer) {
-                appContainer.classList.remove('hidden');
-                
-                // Check if popup already exists before showing a new one
-                const existingPopup = document.getElementById('apiKeyPopup');
-                if (!existingPopup && typeof window.showApiKeyRequiredPopup === 'function') {
-                    // Only show popup if it doesn't already exist
-                    window.showApiKeyRequiredPopup();
-                }
-            }
-        }
+        authElements.authContainer.style.display = 'block';
+        checkAuthState();
     }
-    
-    // Remove any existing event listeners to prevent duplicates
-    const existingListener = window._apiKeyUpdatedListener;
-    if (existingListener) {
-        window.removeEventListener('apiKeyUpdated', existingListener);
-    }
-    
-    // Create a new listener and store a reference to it
-    window._apiKeyUpdatedListener = function() {
-        // When API key is updated, show auth container
-        if (authElements.authContainer) {
-            authElements.authContainer.style.display = 'block';
-            checkAuthState();
-        }
-    };
-    
-    // Add the new listener
-    window.addEventListener('apiKeyUpdated', window._apiKeyUpdatedListener);
 }
 
 // Check authentication state
@@ -426,14 +388,19 @@ async function checkAuthState() {
             if (appContainer) {
                 appContainer.classList.remove('hidden');
             }
+            
+            // Make auth container visible again with proper state
+            if (authElements.authContainer) {
+                authElements.authContainer.style.visibility = 'visible';
+            }
         } else {
             // No authenticated user
             updateAuthUI(null);
-        }
-        
-        // Make auth container visible again with proper state
-        if (authElements.authContainer) {
-            authElements.authContainer.style.visibility = 'visible';
+            
+            // Make auth container visible again
+            if (authElements.authContainer) {
+                authElements.authContainer.style.visibility = 'visible';
+            }
         }
     } catch (error) {
         console.error('Auth state check failed:', error);

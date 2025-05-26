@@ -1301,62 +1301,10 @@ function applyTheme(theme) {
     }
 }
 
-// Function to show API key required popup
+// Function to show API key required popup - disabled as per new requirements
 function showApiKeyRequiredPopup() {
-    // Check if popup already exists to prevent duplicates
-    const existingPopup = document.querySelector('.api-key-popup');
-    if (existingPopup) {
-        existingPopup.remove(); // Remove existing popup before creating a new one
-    }
-    
-    // Create popup container
-    const popupContainer = document.createElement('div');
-    popupContainer.id = 'apiKeyPopup'; // Add an ID for easier reference
-    popupContainer.className = 'api-key-popup';
-    
-    // Create popup content
-    const popupContent = document.createElement('div');
-    popupContent.className = 'api-key-popup-content';
-    
-    // Add header
-    const header = document.createElement('h3');
-    header.textContent = 'API Key Required';
-    
-    // Add message
-    const message = document.createElement('p');
-    message.textContent = 'An OpenAI API key is required to use this application. Please enter your API key in the Settings to continue.';
-    
-    // Add button container
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'api-key-popup-buttons';
-    
-    // Add only an okay button that opens settings
-    const okayButton = document.createElement('button');
-    okayButton.textContent = 'Okay';
-    okayButton.className = 'primary-button'; // Make it stand out as the primary action
-    
-    // Use a more reliable event handler
-    okayButton.addEventListener('click', function() {
-        // First remove the popup
-        const popup = document.getElementById('apiKeyPopup');
-        if (popup) {
-            popup.parentNode.removeChild(popup);
-        }
-        // Then open settings modal
-        setTimeout(() => openSettingsModal(), 50); // Small delay to ensure popup is gone
-    });
-    
-    // Assemble the popup
-    buttonContainer.appendChild(okayButton); // Only add the Okay button
-    
-    popupContent.appendChild(header);
-    popupContent.appendChild(message);
-    popupContent.appendChild(buttonContainer);
-    
-    popupContainer.appendChild(popupContent);
-    
-    // Add to the document
-    document.body.appendChild(popupContainer);
+    // This function is now disabled - we show the signup form directly instead
+    return;
 }
 
 // Chat Mode Functions
