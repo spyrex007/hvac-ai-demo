@@ -1,6 +1,5 @@
 // Constants and State Management
 const STORAGE_KEYS = {
-    API_KEY: 'hvac_ai_api_key',
     PARTS_LIST: 'hvac_parts_list',
     SYSTEM_PROMPT: 'hvac_system_prompt',
     CHATS: 'hvac_chats',
@@ -19,7 +18,6 @@ const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant 
 const DEFAULT_DELETED_CHATS_MAX = 2;
 
 const state = {
-    apiKey: localStorage.getItem(STORAGE_KEYS.API_KEY) || '',
     currentMode: 'chat',
     currentImage: null,
     partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]'),
@@ -44,9 +42,6 @@ let elements = {};
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     elements = {
-        apiKey: document.getElementById('apiKey'),
-        apiStatus: document.getElementById('apiStatus'),
-        saveApiKey: document.getElementById('saveApiKey'),
         chatMode: document.getElementById('chatMode'),
         identifyMode: document.getElementById('identifyMode'),
         chatSection: document.getElementById('chatSection'),
@@ -108,19 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         storageInfo: document.getElementById('storageInfo')
     };
 
-    // Initialize event listeners
-    if (elements.apiKey) {
-        elements.apiKey.value = state.apiKey;
-        if (state.apiKey) {
-            elements.apiStatus.textContent = '✓ API Key Saved';
-            elements.apiStatus.className = '';
-        }
-    }
-
     // Event Listeners - add null checks for all elements
-    if (elements.saveApiKey) {
-        elements.saveApiKey.addEventListener('click', handleSaveApiKey);
-    }
     if (elements.chatMode) {
         elements.chatMode.addEventListener('click', () => switchMode('chat'));
     }
@@ -819,13 +802,7 @@ function clearLocalStorage(includeApiKey) {
     localStorage.removeItem(STORAGE_KEYS.DELETED_CHATS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_CHAT_ID);
     
-    // Clear API key if requested
-    if (includeApiKey) {
-        state.apiKey = '';
-        localStorage.removeItem(STORAGE_KEYS.API_KEY);
-        elements.apiKey.value = '';
-        elements.apiStatus.textContent = '';
-    }
+    // API key is now handled by the server, no need to clear it
     
     // Create a new chat
     createNewChat();
@@ -1090,7 +1067,6 @@ async function sendChatRequest(message, imageDataUrl = null) {
         const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${state.apiKey}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({

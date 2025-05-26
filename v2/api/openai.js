@@ -9,9 +9,13 @@
 const express = require('express');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const router = express.Router();
+require('dotenv').config();
 
 // OpenAI API endpoint
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+// Get API key from environment variables
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // Main handler function
 async function handleOpenAIRequest(req, res) {
@@ -34,16 +38,17 @@ async function handleOpenAIRequest(req, res) {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
   
-  // Get API key from the request headers
-  let apiKey = req.headers.authorization;
+  // Use the server's API key from environment variables
+  let apiKey = `Bearer ${OPENAI_API_KEY}`;
   
-  // If no API key in headers, return an error
-  if (!apiKey || !apiKey.startsWith('Bearer ')) {
-    return res.status(401).json({ error: { message: 'API key is required' } });
+  // If no API key in environment, return an error
+  if (!OPENAI_API_KEY) {
+    console.error('OpenAI API key not configured in environment variables');
+    return res.status(500).json({ error: { message: 'Server configuration error' } });
   }
   
   try {
-    // Forward the request to OpenAI
+    // Forward the request to OpenAI with the server's API key
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
