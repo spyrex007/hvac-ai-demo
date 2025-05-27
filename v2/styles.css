@@ -674,7 +674,7 @@ button:hover {
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 600px;
+    height: 800px;
 }
 
 .messages {
