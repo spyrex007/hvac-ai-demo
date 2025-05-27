@@ -1527,10 +1527,13 @@ function addLoadingIndicator() {
     loadingDiv.id = loadingId;
     loadingDiv.classList.add('message', 'assistant-message', 'loading-message');
     
+    // Determine the appropriate text based on web search status
+    const loadingText = state.webSearchEnabled ? 'Searching the web' : 'Thinking';
+    
     // Add the thinking animation with dots
     loadingDiv.innerHTML = `
         <div class="thinking-indicator">
-            <span>Thinking</span>
+            <span>${loadingText}</span>
             <span class="dot-animation">
                 <span class="dot">.</span>
                 <span class="dot">.</span>
