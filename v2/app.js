@@ -30,7 +30,7 @@ const state = {
     deletedChats: JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS) || '[]'),
     deletedChatsMax: parseInt(localStorage.getItem(STORAGE_KEYS.DELETED_CHATS_MAX)) || DEFAULT_DELETED_CHATS_MAX,
     // Custom chat settings
-    chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy' or 'custom'
+    chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy', 'preset', or 'custom'
     customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4.1"}'),
     selectedPreset: localStorage.getItem(STORAGE_KEYS.SELECTED_PRESET) || '',
     presets: []
@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chatTabs: document.getElementById('chatTabs'),
         // New chat mode elements
         easyChatMode: document.getElementById('easyChatMode'),
+        presetChatMode: document.getElementById('presetChatMode'),
         customChatMode: document.getElementById('customChatMode'),
         customChatSettings: document.getElementById('customChatSettings'),
         // Custom chat settings elements
@@ -197,6 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Chat Mode Selector Event Listeners
     if (elements.easyChatMode) {
         elements.easyChatMode.addEventListener('click', () => switchChatMode('easy'));
+    }
+    if (elements.presetChatMode) {
+        elements.presetChatMode.addEventListener('click', () => switchChatMode('preset'));
     }
     if (elements.customChatMode) {
         elements.customChatMode.addEventListener('click', () => switchChatMode('custom'));
@@ -1359,33 +1363,57 @@ function switchChatMode(mode) {
     localStorage.setItem(STORAGE_KEYS.CHAT_MODE, mode);
     
     // Update UI - only if elements exist
-    if (!elements.easyChatMode || !elements.customChatMode || !elements.customChatSettings) {
+    if (!elements.easyChatMode || !elements.presetChatMode || !elements.customChatMode || !elements.customChatSettings) {
         console.log('Chat mode elements not found in the DOM');
         return;
     }
     
+    // Reset all active classes
+    elements.easyChatMode.classList.remove('active');
+    elements.presetChatMode.classList.remove('active');
+    elements.customChatMode.classList.remove('active');
+    
+    // Hide custom settings by default
+    elements.customChatSettings.classList.add('hidden');
+    
+    // Show/hide appropriate settings based on mode
     if (mode === 'easy') {
         elements.easyChatMode.classList.add('active');
-        elements.customChatMode.classList.remove('active');
-        elements.customChatSettings.classList.add('hidden');
-    } else {
-        elements.easyChatMode.classList.remove('active');
+    } else if (mode === 'preset') {
+        elements.presetChatMode.classList.add('active');
+        // Show custom settings but hide everything except preset and model selection
+        elements.customChatSettings.classList.remove('hidden');
+        
+        // Hide all settings rows except the first one (preset selector)
+        const settingsRows = document.querySelectorAll('.settings-row');
+        settingsRows.forEach((row, index) => {
+            if (index === 0) {
+                // First row contains preset selector, always show it
+                row.classList.remove('hidden');
+            } else if (row.querySelector('#modelSelection')) {
+                // This row contains the model selection, show it
+                row.classList.remove('hidden');
+            } else {
+                // Hide all other rows
+                row.classList.add('hidden');
+            }
+        });
+    } else if (mode === 'custom') {
         elements.customChatMode.classList.add('active');
         elements.customChatSettings.classList.remove('hidden');
+        
+        // Show all settings rows that might have been hidden in preset mode
+        const settingsRows = document.querySelectorAll('.settings-row');
+        settingsRows.forEach(row => {
+            row.classList.remove('hidden');
+        });
     }
 }
 
 // Initialize chat mode based on state - only if elements exist
-if (elements.easyChatMode && elements.customChatMode) {
-    if (state.chatMode === 'easy') {
-        elements.easyChatMode.classList.add('active');
-        elements.customChatMode.classList.remove('active');
-        elements.customChatSettings.classList.add('hidden');
-    } else {
-        elements.easyChatMode.classList.remove('active');
-        elements.customChatMode.classList.add('active');
-        elements.customChatSettings.classList.remove('hidden');
-    }
+if (elements.easyChatMode && elements.presetChatMode && elements.customChatMode) {
+    // Call switchChatMode to properly initialize the UI based on the saved mode
+    switchChatMode(state.chatMode);
 }
 
 // Initialize preset selector if it exists
