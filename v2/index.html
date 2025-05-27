@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="chat-enhancements.css">
     <link rel="stylesheet" href="responsive.css">
     <link rel="stylesheet" href="loading-states.css">
+    <link rel="stylesheet" href="web-search.css">
+    <link rel="stylesheet" href="sources-display.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Add theme color for mobile browsers -->
     <meta name="theme-color" content="#2563eb">
@@ -140,6 +142,16 @@
                 
                 <div class="chat-container">
                     <div id="chatMessages" class="messages"></div>
+                    <!-- Web Search Toggle (Compact) -->
+                    <div class="compact-web-search-toggle">
+                        <label>Web Search:</label>
+                        <div class="toggle-switch-container">
+                            <button id="webSearchToggle" class="toggle-switch">
+                                <span class="toggle-slider"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="input-area">
                         <textarea id="userInput" placeholder="Type your message..."></textarea>
                         <label for="chatImageUpload" class="image-upload-label">
@@ -172,6 +184,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    
                     <div class="settings-row">
                         <div class="settings-group system-prompt-manager">
                             <div class="system-prompt-header">
@@ -374,5 +388,10 @@
     </div>
     <!-- Loading states script -->
     <script src="loading-states.js"></script>
+    <!-- Markdown parsing library -->
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+    <!-- Syntax highlighting -->
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/github.min.css">
 </body>
 </html>

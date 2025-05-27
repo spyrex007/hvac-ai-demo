@@ -125,11 +125,8 @@ function saveEditedMessage(chatId, messageId, newContent) {
     // Save to local storage
     saveChatsToLocalStorage();
     
-    // Regenerate AI response if this was the last user message
-    const isLastUserMessage = isLastMessageFromUser(chatIndex, messageIndex);
-    if (isLastUserMessage) {
-        regenerateAIResponse(chatId, messageIndex);
-    }
+    // Always regenerate AI response when a message is edited
+    regenerateAIResponse(chatId, messageIndex);
 }
 
 function cancelMessageEdit(messageDiv) {

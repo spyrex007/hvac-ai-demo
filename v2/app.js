@@ -10,7 +10,8 @@ const STORAGE_KEYS = {
     CHAT_MODE: 'hvac_chat_mode',
     CUSTOM_CHAT_SETTINGS: 'hvac_custom_chat_settings',
     CUSTOM_SYSTEM_PROMPT: 'hvac_custom_system_prompt',
-    SELECTED_PRESET: 'hvac_selected_preset'
+    SELECTED_PRESET: 'hvac_selected_preset',
+    WEB_SEARCH_ENABLED: 'hvac_web_search_enabled'
 };
 
 const DEFAULT_SYSTEM_PROMPT = "You are an HVAC Repair and Maintenance Assistant Chatbot. You are very helpful. You ONLY want to talk about HVAC stuff. You are chatting with an HVAC technician who already knows about HVAC, so you should provide advice meant for experts. Make all answers very long and detailed, taking all factors into account. Ask follow-up questions. If images are provided, look at the specific model numbers, manufacturers, and more to determine differences between brands and such. Specifically call out differences and model numbers of brands, specifications, and such from images and text.";
@@ -33,7 +34,9 @@ const state = {
     chatMode: localStorage.getItem(STORAGE_KEYS.CHAT_MODE) || 'easy', // 'easy', 'preset', or 'custom'
     customChatSettings: JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOM_CHAT_SETTINGS) || '{"maxTokens": 2000, "temperature": 0.7, "model": "gpt-4.1"}'),
     selectedPreset: localStorage.getItem(STORAGE_KEYS.SELECTED_PRESET) || '',
-    presets: []
+    presets: [],
+    // Web search functionality
+    webSearchEnabled: localStorage.getItem(STORAGE_KEYS.WEB_SEARCH_ENABLED) === 'true'
 };
 
 // DOM Elements
@@ -113,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
         temperatureValue: document.getElementById('temperatureValue'),
         modelSelection: document.getElementById('modelSelection'),
         presetPrompt: document.getElementById('presetPrompt'),
+        // Web search toggle
+        webSearchToggle: document.getElementById('webSearchToggle'),
+        webSearchStatus: document.getElementById('webSearchStatus'),
 
         newChatBtn: document.getElementById('newChatBtn'),
 
@@ -136,6 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (elements.identifyMode) {
         elements.identifyMode.addEventListener('click', () => switchMode('identify'));
+    }
+    if (elements.webSearchToggle) {
+        elements.webSearchToggle.addEventListener('click', toggleWebSearch);
     }
     if (elements.imageUpload) {
         elements.imageUpload.addEventListener('change', handleImageUpload);
@@ -1210,19 +1219,32 @@ async function sendChatRequest(message, imageDataUrls = null) {
             ? 'http://localhost:3000/api/openai'
             : '/api/openai';
         
-        console.log('Sending request to OpenAI API via Vercel API route');
+        // Determine if we should use web search based on state
+        const useWebSearch = state.webSearchEnabled;
+        
+        console.log(`Sending request to OpenAI ${useWebSearch ? 'Responses' : 'Completions'} API via Vercel API route`);
+        
+        // Prepare request payload
+        const requestPayload = {
+            model: state.chatMode === 'custom' ? state.customChatSettings.model : "gpt-4.1",
+            messages: messages,
+            max_tokens: state.chatMode === 'custom' ? state.customChatSettings.maxTokens : 2000,
+            ...(state.chatMode === 'custom' && { temperature: state.customChatSettings.temperature }),
+            // Include useWebSearch flag for the backend to route correctly
+            useWebSearch: useWebSearch
+        };
+        
+        // Log if web search is being used
+        if (useWebSearch) {
+            console.log('Web search functionality is enabled for this request');
+        }
         
         const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                model: state.chatMode === 'custom' ? state.customChatSettings.model : "gpt-4.1",
-                messages: messages,
-                max_tokens: state.chatMode === 'custom' ? state.customChatSettings.maxTokens : 2000,
-                ...(state.chatMode === 'custom' && { temperature: state.customChatSettings.temperature })
-            })
+            body: JSON.stringify(requestPayload)
         });
         
         if (!response.ok) {
@@ -1272,8 +1294,51 @@ async function sendChatRequest(message, imageDataUrls = null) {
             window.LoadingStates.stopLoading('sendMessage');
         }
         
+        // Extract AI response content and sources if available
         const aiResponse = data.choices[0].message.content;
-        addMessageToChat('assistant', aiResponse);
+        
+        // Check if we have web search sources in the response
+        let sources = null;
+        
+        // Check if this is a responses API response with citations
+        if (useWebSearch && data.choices[0].message.tool_calls) {
+            // Look for web_search tool calls
+            const webSearchCalls = data.choices[0].message.tool_calls.filter(
+                call => call.type === 'function' && 
+                call.function && 
+                call.function.name === 'web_search'
+            );
+            
+            if (webSearchCalls.length > 0) {
+                try {
+                    // Extract sources from the tool calls
+                    sources = [];
+                    
+                    webSearchCalls.forEach(call => {
+                        if (call.function && call.function.arguments) {
+                            const args = JSON.parse(call.function.arguments);
+                            if (args.citations && Array.isArray(args.citations)) {
+                                args.citations.forEach(citation => {
+                                    if (citation.url) {
+                                        sources.push({
+                                            url: citation.url,
+                                            title: citation.title || 'Web Source'
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    
+                    console.log('Extracted web search sources:', sources);
+                } catch (error) {
+                    console.error('Error parsing web search citations:', error);
+                }
+            }
+        }
+        
+        // Add the message with sources if available
+        addMessageToChat('assistant', aiResponse, false, sources);
         
     } catch (error) {
         // Remove the loading indicators on error
@@ -1289,59 +1354,155 @@ async function sendChatRequest(message, imageDataUrls = null) {
     }
 }
 
-function addMessageToChat(role, content, isHtml = false) {
-    // Create message element
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message');
-    messageDiv.classList.add(`${role}-message`);
+function addMessageToChat(role, content, isHtml = false, sources = null) {
+    // Create a message element
+    const messageElement = document.createElement('div');
+    messageElement.className = `message ${role}`;
+    
+    // Add message content
+    let messageContent;
     
     if (isHtml) {
-        messageDiv.innerHTML = content;
+        // If it's HTML content, create a div and set innerHTML
+        messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.innerHTML = content;
     } else {
-        messageDiv.innerHTML = role === 'user' ? escapeHtml(content) : marked.parse(content);
+        // For text content, create a div and use markdown parsing
+        messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        // Check if markdown-it is available
+        if (typeof markdownit === 'function') {
+            try {
+                // Parse markdown in the content
+                const md = markdownit({
+                    linkify: true,
+                    highlight: function (str, lang) {
+                        if (window.hljs && lang && window.hljs.getLanguage(lang)) {
+                            try {
+                                return window.hljs.highlight(str, { language: lang }).value;
+                            } catch (err) {}
+                        }
+                        return ''; // use external default escaping
+                    }
+                });
+                
+                messageContent.innerHTML = md.render(content);
+                
+                // Add syntax highlighting to code blocks if hljs is available
+                if (window.hljs) {
+                    messageContent.querySelectorAll('pre code').forEach((block) => {
+                        window.hljs.highlightElement(block);
+                    });
+                }
+            } catch (err) {
+                console.error('Error parsing markdown:', err);
+                // Fallback to plain text with basic formatting
+                messageContent.innerHTML = content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }
+        } else {
+            // Fallback if markdown-it is not available
+            messageContent.innerHTML = content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
     }
     
-    // Add to DOM
-    elements.chatMessages.appendChild(messageDiv);
+    messageElement.appendChild(messageContent);
+    
+    // Add sources if available (from web search)
+    if (sources && Array.isArray(sources) && sources.length > 0 && role === 'assistant') {
+        const sourcesContainer = document.createElement('div');
+        sourcesContainer.className = 'sources-container';
+        
+        const sourcesTitle = document.createElement('div');
+        sourcesTitle.className = 'sources-title';
+        sourcesTitle.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Sources
+        `;
+        sourcesContainer.appendChild(sourcesTitle);
+        
+        const sourcesList = document.createElement('div');
+        sourcesList.className = 'sources-list';
+        
+        sources.forEach((source, index) => {
+            const sourceItem = document.createElement('div');
+            sourceItem.className = 'source-item';
+            
+            const sourceNumber = document.createElement('div');
+            sourceNumber.className = 'source-number';
+            sourceNumber.textContent = index + 1;
+            
+            const sourceLink = document.createElement('a');
+            sourceLink.className = 'source-link';
+            sourceLink.href = source.url;
+            sourceLink.target = '_blank';
+            sourceLink.rel = 'noopener noreferrer';
+            
+            const sourceContent = document.createElement('div');
+            sourceContent.className = 'source-content';
+            
+            const sourceTitle = document.createElement('div');
+            sourceTitle.className = 'source-title';
+            sourceTitle.textContent = source.title || 'Web Source';
+            
+            const sourceUrl = document.createElement('div');
+            sourceUrl.className = 'source-url';
+            sourceUrl.textContent = source.url;
+            
+            sourceContent.appendChild(sourceTitle);
+            sourceContent.appendChild(sourceUrl);
+            
+            sourceLink.appendChild(sourceContent);
+            sourceItem.appendChild(sourceNumber);
+            sourceItem.appendChild(sourceLink);
+            sourcesList.appendChild(sourceItem);
+        });
+        
+        sourcesContainer.appendChild(sourcesList);
+        messageElement.appendChild(sourcesContainer);
+    }
+    
+    // Add to the messages container
+    elements.chatMessages.appendChild(messageElement);
+    
+    // Scroll to the bottom of the messages
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
     
-    // Save to current chat in state
+    // Add feedback buttons for AI messages
+    if (role === 'assistant') {
+        // Add feedback buttons if UI Enhancements module is available
+        if (window.UIEnhancements && typeof window.UIEnhancements.addFeedbackButtons === 'function') {
+            window.UIEnhancements.addFeedbackButtons(messageElement);
+        }
+    }
+    
+    // Save the message to the current chat
     if (state.activeChatId) {
         const chatIndex = state.chats.findIndex(chat => chat.id === state.activeChatId);
         if (chatIndex !== -1) {
-            // Add message to chat history
             state.chats[chatIndex].messages.push({
                 role,
-                content: isHtml ? content : (role === 'user' ? content : marked.parse(content)),
-                timestamp: new Date().toISOString(),
-                isHtml
+                content,
+                isHtml,
+                sources: sources || null // Save sources with the message
             });
             
-            // Update chat title if it's the first user message
-            if (role === 'user' && state.chats[chatIndex].messages.filter(m => m.role === 'user').length === 1) {
-                let title;
-                
-                if (isHtml) {
-                    // Check if it's only an image message
-                    const textContent = content.replace(/<img[^>]*>/g, '').replace(/<[^>]*>/g, '').trim();
-                    
-                    if (!textContent && content.includes('<img')) {
-                        // It's only an image
-                        title = 'Image';
-                    } else {
-                        // Extract the first 10 characters of text
-                        title = textContent.substring(0, 10) + (textContent.length > 10 ? '...' : '');
-                    }
-                } else {
-                    // Plain text message - get first 10 characters
-                    title = content.substring(0, 10) + (content.length > 10 ? '...' : '');
-                }
-                
-                state.chats[chatIndex].title = title;
-                updateChatTabs();
-            }
-            
-            // Save to local storage
+            // Save to localStorage
             saveChatsToLocalStorage();
         }
     }
@@ -1963,8 +2124,31 @@ function saveCustomChatSettings() {
     console.log('Custom chat settings saved:', state.customChatSettings);
 }
 
+// Web Search Toggle Functionality
+function toggleWebSearch() {
+    state.webSearchEnabled = !state.webSearchEnabled;
+    localStorage.setItem(STORAGE_KEYS.WEB_SEARCH_ENABLED, state.webSearchEnabled);
+    updateWebSearchStatus();
+    console.log(`Web search ${state.webSearchEnabled ? 'enabled' : 'disabled'}`);
+}
+
+// Update the web search status indicator
+function updateWebSearchStatus() {
+    if (elements.webSearchStatus) {
+        elements.webSearchStatus.textContent = state.webSearchEnabled ? 'Enabled' : 'Disabled';
+        elements.webSearchStatus.className = state.webSearchEnabled ? 'status-enabled' : 'status-disabled';
+    }
+    
+    if (elements.webSearchToggle) {
+        elements.webSearchToggle.classList.toggle('active', state.webSearchEnabled);
+    }
+}
+
 // Initialize
 updatePartsTable();
+
+// Initialize web search status
+updateWebSearchStatus();
 
 // Initialize chat mode based on state - only if elements exist
 if (elements.easyChatMode && elements.customChatMode && elements.customChatSettings) {

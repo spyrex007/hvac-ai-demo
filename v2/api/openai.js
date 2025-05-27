@@ -3,6 +3,8 @@
  * 
  * This Vercel API route handles OpenAI API requests directly,
  * eliminating the need for the Cloudflare proxy.
+ * 
+ * Updated to use the responses API which includes web search capabilities.
  */
 
 // Import express and node-fetch for making HTTP requests
@@ -11,8 +13,9 @@ const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch
 const router = express.Router();
 require('dotenv').config();
 
-// OpenAI API endpoint
+// OpenAI API endpoint - now using responses API for web search capabilities
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_RESPONSES_API_URL = 'https://api.openai.com/v1/responses';
 
 // Get API key from environment variables
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -48,17 +51,38 @@ async function handleOpenAIRequest(req, res) {
   }
   
   try {
+    // Determine which API to use based on request body
+    const useResponsesAPI = req.body.useWebSearch === true;
+    const apiUrl = useResponsesAPI ? OPENAI_RESPONSES_API_URL : OPENAI_API_URL;
+    
+    // Prepare the request body
+    const requestBody = { ...req.body };
+    
+    // If using responses API, ensure it has the right format
+    if (useResponsesAPI) {
+      // Remove property that was only used for routing
+      delete requestBody.useWebSearch;
+      
+      // Add web_search tool if not already present
+      if (!requestBody.tools || !requestBody.tools.some(tool => tool.type === 'web_search')) {
+        requestBody.tools = requestBody.tools || [];
+        requestBody.tools.push({
+          type: 'web_search'
+        });
+      }
+    }
+    
     // Forward the request to OpenAI with the server's API key
-    const response = await fetch(OPENAI_API_URL, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': apiKey,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(req.body)
+      body: JSON.stringify(requestBody)
     });
     
-    console.log('OpenAI API response status:', response.status);
+    console.log(`OpenAI ${useResponsesAPI ? 'Responses' : 'Completions'} API response status:`, response.status);
     
     // Get the response content
     const responseText = await response.text();
