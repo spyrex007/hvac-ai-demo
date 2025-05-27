@@ -992,8 +992,12 @@ async function handleSendMessage() {
         reader.onload = async (e) => {
             const imageDataUrl = e.target.result;
             const messageContent = `
-                <div>${escapeHtml(message)}</div>
-                <img src="${imageDataUrl}" alt="User uploaded image" class="chat-image-preview">
+                <div class="message-content-wrapper">
+                    <div class="message-text">${escapeHtml(message)}</div>
+                    <div class="message-image-container">
+                        <img src="${imageDataUrl}" alt="User uploaded image" class="chat-image-preview">
+                    </div>
+                </div>
             `;
             addMessageToChat('user', messageContent, true);
             
@@ -1752,33 +1756,88 @@ function removeInstruction(index) {
     }
 }
 
+// Custom confirmation modal functions
+function showConfirmationModal(title, message, onConfirm) {
+    const modal = document.getElementById('confirmationModal');
+    const titleElement = document.getElementById('confirmationTitle');
+    const messageElement = document.getElementById('confirmationMessage');
+    const confirmButton = document.getElementById('confirmationConfirmBtn');
+    const cancelButton = document.getElementById('confirmationCancelBtn');
+    const closeButton = document.getElementById('closeConfirmationModal');
+    
+    if (!modal || !titleElement || !messageElement || !confirmButton || !cancelButton) return;
+    
+    // Set content
+    titleElement.textContent = title;
+    messageElement.textContent = message;
+    
+    // Show the modal
+    modal.classList.remove('hidden');
+    
+    // Set up event listeners
+    const closeModal = () => {
+        modal.classList.add('hidden');
+        confirmButton.removeEventListener('click', handleConfirm);
+        cancelButton.removeEventListener('click', handleCancel);
+        closeButton.removeEventListener('click', handleCancel);
+    };
+    
+    const handleConfirm = () => {
+        closeModal();
+        if (typeof onConfirm === 'function') {
+            onConfirm();
+        }
+    };
+    
+    const handleCancel = () => {
+        closeModal();
+    };
+    
+    confirmButton.addEventListener('click', handleConfirm);
+    cancelButton.addEventListener('click', handleCancel);
+    closeButton.addEventListener('click', handleCancel);
+    
+    // Close on escape key
+    const handleEscape = (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
+
 // Function to reset system prompt to default
 function resetSystemPromptToDefault() {
-    // Confirm before resetting
-    if (confirm('Are you sure you want to reset the system instructions? This will remove all custom instructions.')) {
-        // Clear the custom system prompt
-        state.customSystemPrompt = '';
-        localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
-        
-        // Reset preset selection
-        state.selectedPreset = '';
-        localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
-        if (elements.presetPrompt) {
-            elements.presetPrompt.value = '';
+    // Use custom confirmation modal
+    showConfirmationModal(
+        'Reset System Instructions',
+        'Are you sure you want to reset the system instructions? This will remove all custom instructions.',
+        () => {
+            // Clear the custom system prompt
+            state.customSystemPrompt = '';
+            localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
+            
+            // Reset preset selection
+            state.selectedPreset = '';
+            localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
+            if (elements.presetPrompt) {
+                elements.presetPrompt.value = '';
+            }
+            
+            // Update the preview
+            updateSystemPromptPreview();
+            
+            // Show feedback message
+            const previewContent = elements.systemPromptContent;
+            if (previewContent) {
+                previewContent.classList.add('success-flash');
+                setTimeout(() => {
+                    previewContent.classList.remove('success-flash');
+                }, 1000);
+            }
         }
-        
-        // Update the preview
-        updateSystemPromptPreview();
-        
-        // Show feedback message
-        const previewContent = elements.systemPromptContent;
-        if (previewContent) {
-            previewContent.classList.add('success-flash');
-            setTimeout(() => {
-                previewContent.classList.remove('success-flash');
-            }, 1000);
-        }
-    }
+    );
 }
 
 // Function to reset all custom settings
