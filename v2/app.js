@@ -39,6 +39,32 @@ const state = {
 // DOM Elements
 let elements = {};
 
+// Global event handler for chat tab close buttons
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('chat-tab-close')) {
+        e.stopPropagation();
+        e.preventDefault();
+        const chatId = e.target.getAttribute('data-chat-id');
+        console.log('Global handler: Delete button clicked for chat:', chatId);
+        
+        if (chatId) {
+            // Use our local deleteChat function if window.deleteChat is not available
+            if (typeof window.deleteChat === 'function') {
+                try {
+                    window.deleteChat(chatId);
+                } catch (error) {
+                    console.error('Error deleting chat:', error);
+                    // Fallback to local implementation
+                    localDeleteChat(chatId);
+                }
+            } else {
+                // Use local implementation as fallback
+                localDeleteChat(chatId);
+            }
+        }
+    }
+});
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     elements = {
@@ -673,9 +699,10 @@ function updateChatTabs() {
             tab.classList.add('active');
         }
         
+        tab.setAttribute('data-chat-id', chat.id);
         tab.innerHTML = `
             <span class="chat-tab-title">${escapeHtml(chat.title)}</span>
-            <span class="chat-tab-close">×</span>
+            <span class="chat-tab-close" data-chat-id="${chat.id}">×</span>
         `;
         
         // Add click event to switch to this chat
@@ -686,12 +713,8 @@ function updateChatTabs() {
             switchToChat(chat.id);
         });
         
-        // Add close button functionality
-        const closeBtn = tab.querySelector('.chat-tab-close');
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.deleteChat(chat.id);
-        });
+        // We don't need to add individual event listeners here anymore
+        // since we have a global event handler for all chat-tab-close elements
         
         elements.chatTabs.appendChild(tab);
     });
@@ -741,7 +764,51 @@ function clearChatMessages() {
     elements.chatMessages.innerHTML = '';
 }
 
-// Removed local deleteChat. Use window.deleteChat from app-supabase.js instead.
+// Local implementation of deleteChat as a fallback
+function localDeleteChat(chatId) {
+    console.log('Using local deleteChat implementation for chat ID:', chatId);
+    // Find the chat in the state
+    const chatIndex = state.chats.findIndex(chat => chat.id === chatId);
+    if (chatIndex === -1) return;
+    
+    // Get the chat to save to deleted chats
+    const deletedChat = state.chats[chatIndex];
+    
+    // Remove from chats array
+    state.chats.splice(chatIndex, 1);
+    
+    // Add to deleted chats
+    state.deletedChats.unshift(deletedChat);
+    
+    // Enforce maximum deleted chats
+    if (state.deletedChats.length > state.deletedChatsMax) {
+        state.deletedChats.length = state.deletedChatsMax;
+    }
+    
+    // If the deleted chat was active, set a new active chat
+    if (state.activeChatId === chatId) {
+        if (state.chats.length > 0) {
+            state.activeChatId = state.chats[0].id;
+        } else {
+            state.activeChatId = null;
+            createNewChat();
+        }
+    }
+    
+    // Update UI
+    updateChatTabs();
+    updateRestoreButton();
+    
+    // Load messages for the new active chat
+    if (state.activeChatId) {
+        loadChatMessages(state.activeChatId);
+    }
+    
+    // Save to storage
+    saveChatsToLocalStorage();
+    localStorage.setItem(STORAGE_KEYS.DELETED_CHATS, JSON.stringify(state.deletedChats));
+    localStorage.setItem(STORAGE_KEYS.ACTIVE_CHAT_ID, state.activeChatId);
+}
 
 function restoreDeletedChat() {
     if (state.deletedChats.length === 0) return;
