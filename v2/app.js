@@ -1076,6 +1076,11 @@ async function sendChatRequest(message, imageDataUrls = null) {
         // Add a loading indicator while waiting for the AI response
         const loadingIndicatorId = addLoadingIndicator();
         
+        // Also show loading state on send button if LoadingStates is available
+        if (window.LoadingStates) {
+            window.LoadingStates.startLoading('sendMessage');
+        }
+        
         // Choose the appropriate system prompt based on chat mode
         const promptToUse = (state.chatMode === 'custom' && state.customSystemPrompt) ? 
                            state.customSystemPrompt : state.systemPrompt;
@@ -1259,15 +1264,25 @@ async function sendChatRequest(message, imageDataUrls = null) {
             throw new Error(data.error.message || 'Unknown API error');
         }
 
-        // Remove the loading indicator
+        // Remove the loading indicators
         removeLoadingIndicator();
+        
+        // Stop loading state on send button if LoadingStates is available
+        if (window.LoadingStates) {
+            window.LoadingStates.stopLoading('sendMessage');
+        }
         
         const aiResponse = data.choices[0].message.content;
         addMessageToChat('assistant', aiResponse);
         
     } catch (error) {
-        // Remove the loading indicator on error
+        // Remove the loading indicators on error
         removeLoadingIndicator();
+        
+        // Stop loading state on send button if LoadingStates is available
+        if (window.LoadingStates) {
+            window.LoadingStates.stopLoading('sendMessage');
+        }
         
         console.error('Error in sendChatRequest:', error);
         addMessageToChat('assistant', `Error: ${error.message}. Please check the console for more details.`);

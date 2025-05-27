@@ -1,0 +1,118 @@
+/* Loading States CSS for HVAC AI Demo
+ * Provides styling for loading indicators and states
+ */
+
+/* Button loading state */
+.btn-with-loader {
+    position: relative;
+}
+
+.btn-with-loader.loading {
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.btn-with-loader.loading::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-top: -10px;
+    margin-left: -10px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-top-color: white;
+    animation: button-loading-spinner 0.8s linear infinite;
+}
+
+/* Dark theme button loading */
+[data-theme="dark"] .btn-with-loader.loading::after {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: rgba(0, 0, 0, 0.5);
+}
+
+/* API loading overlay */
+.api-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.api-loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.api-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    animation: api-loading-spinner 1s linear infinite;
+}
+
+/* Form loading state */
+.form-group.form-loading input,
+.form-group.form-loading select,
+.form-group.form-loading textarea {
+    background-color: rgba(0, 0, 0, 0.05);
+    pointer-events: none;
+}
+
+.auth-form.form-loading {
+    position: relative;
+}
+
+.auth-form.form-loading::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+/* Loading animations */
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes api-loading-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .api-loading-spinner {
+        width: 40px;
+        height: 40px;
+    }
+}
