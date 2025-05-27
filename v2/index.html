@@ -127,6 +127,34 @@
                     <button id="customChatMode" class="chat-mode-btn">Custom Chat</button>
                 </div>
                 
+                <!-- Chat Tabs -->
+                <div class="chat-tabs-container">
+                    <div class="chat-tabs" id="chatTabs">
+                        <!-- Tabs will be added dynamically -->
+                    </div>
+                    <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
+                </div>
+                
+                <div class="chat-container">
+                    <div id="chatMessages" class="messages"></div>
+                    <div class="input-area">
+                        <textarea id="userInput" placeholder="Type your message..."></textarea>
+                        <label for="chatImageUpload" class="image-upload-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                <polyline points="21 15 16 10 5 21"></polyline>
+                            </svg>
+                        </label>
+                        <input type="file" id="chatImageUpload" accept="image/*" class="hidden" multiple>
+                        <button id="sendMessage">Send</button>
+                    </div>                  
+                    
+                    <div class="restore-container">
+                        <button id="restoreChat" class="restore-btn" disabled>Restore Deleted Chat (0)</button>
+                    </div>
+                </div>
+                
                 <!-- Custom Chat Settings (hidden by default) -->
                 <div id="customChatSettings" class="custom-chat-settings hidden">
                     <div class="settings-row">
@@ -190,34 +218,6 @@
                     </div>
                     <div class="settings-row custom-settings-actions">
                         <button id="resetCustomSettings" class="small-btn">♻️ Reset Custom Settings</button>
-                    </div>
-                </div>
-                
-                <!-- Chat Tabs -->
-                <div class="chat-tabs-container">
-                    <div class="chat-tabs" id="chatTabs">
-                        <!-- Tabs will be added dynamically -->
-                    </div>
-                    <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
-                </div>
-                
-                <div class="chat-container">
-                    <div id="chatMessages" class="messages"></div>
-                    <div class="input-area">
-                        <textarea id="userInput" placeholder="Type your message..."></textarea>
-                        <label for="chatImageUpload" class="image-upload-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                            </svg>
-                        </label>
-                        <input type="file" id="chatImageUpload" accept="image/*" class="hidden">
-                        <button id="sendMessage">Send</button>
-                    </div>                  
-                    
-                    <div class="restore-container">
-                        <button id="restoreChat" class="restore-btn" disabled>Restore Deleted Chat (0)</button>
                     </div>
                 </div>
             </section>

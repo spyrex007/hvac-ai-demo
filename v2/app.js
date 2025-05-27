@@ -23,7 +23,7 @@ const state = {
     partsList: JSON.parse(localStorage.getItem(STORAGE_KEYS.PARTS_LIST) || '[]'),
     systemPrompt: localStorage.getItem(STORAGE_KEYS.SYSTEM_PROMPT) || DEFAULT_SYSTEM_PROMPT,
     customSystemPrompt: localStorage.getItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT) || '',
-    chatImageFile: null,
+    chatImageFiles: [], // Changed from single chatImageFile to array of files
     chats: JSON.parse(localStorage.getItem(STORAGE_KEYS.CHATS) || '[]'),
     activeChatId: localStorage.getItem(STORAGE_KEYS.ACTIVE_CHAT_ID) || null,
     theme: localStorage.getItem(STORAGE_KEYS.THEME) || 'default',
@@ -545,9 +545,12 @@ function handleResetSystemPrompt() {
 
 // Chat Image Upload
 function handleChatImageUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        processImageFile(file);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+        // Process each file
+        for (let i = 0; i < files.length; i++) {
+            processImageFile(files[i]);
+        }
     }
 }
 
@@ -555,33 +558,54 @@ function handleChatImageUpload(event) {
 function processImageFile(file) {
     if (!file || !file.type.startsWith('image/')) return;
     
-    state.chatImageFile = file;
+    // Generate a unique ID for this image
+    const imageId = 'img_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    
+    // Add file to our images array with its ID
+    state.chatImageFiles.push({
+        id: imageId,
+        file: file
+    });
+    
     const reader = new FileReader();
     reader.onload = (e) => {
+        // Create a images container if it doesn't exist
+        let imagesContainer = document.querySelector('.chat-images-container');
+        if (!imagesContainer) {
+            imagesContainer = document.createElement('div');
+            imagesContainer.classList.add('chat-images-container');
+            // Add to user input area
+            const inputArea = elements.userInput.parentElement;
+            inputArea.insertBefore(imagesContainer, elements.userInput);
+        }
+        
         // Create image preview
         const imagePreview = document.createElement('div');
         imagePreview.classList.add('chat-image-preview-container');
+        imagePreview.dataset.imageId = imageId;
         imagePreview.innerHTML = `
             <img src="${e.target.result}" alt="Chat image" class="chat-image-preview">
-            <button class="remove-image-btn">×</button>
+            <button class="remove-image-btn" aria-label="Remove image">×</button>
         `;
         
-        // Add to user input area
-        const inputArea = elements.userInput.parentElement;
-        // Check if there's already an image preview
-        const existingPreview = inputArea.querySelector('.chat-image-preview-container');
-        if (existingPreview) {
-            existingPreview.remove();
-        }
-        inputArea.insertBefore(imagePreview, elements.userInput);
+        // Add to images container
+        imagesContainer.appendChild(imagePreview);
         
         // Add remove button functionality
         const removeBtn = imagePreview.querySelector('.remove-image-btn');
         removeBtn.addEventListener('click', () => {
+            // Remove from DOM
             imagePreview.remove();
-            state.chatImageFile = null;
-            if (elements.chatImageUpload) {
-                elements.chatImageUpload.value = '';
+            
+            // Remove from state
+            state.chatImageFiles = state.chatImageFiles.filter(img => img.id !== imageId);
+            
+            // If no more images, remove the container
+            if (state.chatImageFiles.length === 0) {
+                imagesContainer.remove();
+                if (elements.chatImageUpload) {
+                    elements.chatImageUpload.value = '';
+                }
             }
         });
     };
@@ -643,9 +667,12 @@ function handleDrop(e) {
     
     // Check if the dataTransfer object has files
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        const file = e.dataTransfer.files[0];
-        if (file.type.startsWith('image/')) {
-            processImageFile(file);
+        // Process all dropped image files
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+            const file = e.dataTransfer.files[i];
+            if (file.type.startsWith('image/')) {
+                processImageFile(file);
+            }
         }
     }
 }
@@ -981,37 +1008,61 @@ async function handleSendMessage() {
     }
     
     const message = elements.userInput.value.trim();
-    const hasImage = state.chatImageFile !== null;
+    const hasImages = state.chatImageFiles.length > 0;
     
-    if (!message && !hasImage) return;
+    if (!message && !hasImages) return;
 
     // Add user message to chat
-    if (hasImage) {
-        // Create a message with both text and image
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const imageDataUrl = e.target.result;
-            const messageContent = `
-                <div class="message-content-wrapper">
-                    <div class="message-text">${escapeHtml(message)}</div>
-                    <div class="message-image-container">
-                        <img src="${imageDataUrl}" alt="User uploaded image" class="chat-image-preview">
-                    </div>
+    if (hasImages) {
+        // Process all images to data URLs
+        const processAllImages = state.chatImageFiles.map(imgObj => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    resolve({
+                        id: imgObj.id,
+                        dataUrl: e.target.result
+                    });
+                };
+                reader.readAsDataURL(imgObj.file);
+            });
+        });
+        
+        // Wait for all images to be processed
+        const imageResults = await Promise.all(processAllImages);
+        
+        // Create HTML content for the message with all images
+        let imagesHtml = '';
+        imageResults.forEach(img => {
+            imagesHtml += `
+                <div class="message-image-container" data-image-id="${img.id}">
+                    <img src="${img.dataUrl}" alt="User uploaded image" class="chat-image-preview">
                 </div>
             `;
-            addMessageToChat('user', messageContent, true);
-            
-            // Clear input and image
-            elements.userInput.value = '';
-            const imagePreview = document.querySelector('.chat-image-preview-container');
-            if (imagePreview) imagePreview.remove();
-            
-            // Send to API
-            await sendChatRequest(message, imageDataUrl);
-        };
-        reader.readAsDataURL(state.chatImageFile);
-        state.chatImageFile = null;
-        elements.chatImageUpload.value = '';
+        });
+        
+        const messageContent = `
+            <div class="message-content-wrapper">
+                <div class="message-text">${escapeHtml(message)}</div>
+                <div class="message-images-grid">${imagesHtml}</div>
+            </div>
+        `;
+        
+        addMessageToChat('user', messageContent, true);
+        
+        // Clear input and images
+        elements.userInput.value = '';
+        const imagesContainer = document.querySelector('.chat-images-container');
+        if (imagesContainer) imagesContainer.remove();
+        
+        // Send to API
+        await sendChatRequest(message, imageResults.map(img => img.dataUrl));
+        
+        // Reset state
+        state.chatImageFiles = [];
+        if (elements.chatImageUpload) {
+            elements.chatImageUpload.value = '';
+        }
     } else {
         // Text-only message
         addMessageToChat('user', message);
@@ -1020,7 +1071,7 @@ async function handleSendMessage() {
     }
 }
 
-async function sendChatRequest(message, imageDataUrl = null) {
+async function sendChatRequest(message, imageDataUrls = null) {
     try {
         // Add a loading indicator while waiting for the AI response
         const loadingIndicatorId = addLoadingIndicator();
@@ -1058,20 +1109,31 @@ async function sendChatRequest(message, imageDataUrl = null) {
                     
                     // Convert HTML content to plain text or structured content
                     if (prevMsg.isHtml) {
-                        // Check if it contains an image
-                        const imgMatch = prevMsg.content.match(/<img src="(data:image\/[^;]+;base64,[^"]+)"/);
+                        // Check if it contains multiple images
+                        const imgMatches = Array.from(prevMsg.content.matchAll(/<img src="(data:image\/[^;]+;base64,[^"]+)"/g));
                         
-                        if (imgMatch && imgMatch[1]) {
-                            // This was a message with an image
-                            const imgDataUrl = imgMatch[1];
+                        if (imgMatches && imgMatches.length > 0) {
+                            // This was a message with one or more images
                             const textContent = prevMsg.content.replace(/<[^>]*>/g, '').trim();
+                            
+                            // Create content array with text first
+                            const contentArray = [
+                                { type: "text", text: textContent || "What can you tell me about these HVAC components?" }
+                            ];
+                            
+                            // Add each image to the content array
+                            imgMatches.forEach(match => {
+                                if (match && match[1]) {
+                                    contentArray.push({
+                                        type: "image_url", 
+                                        image_url: { url: match[1] }
+                                    });
+                                }
+                            });
                             
                             messages.push({
                                 role: prevMsg.role,
-                                content: [
-                                    { type: "text", text: textContent || "What can you tell me about this HVAC component?" },
-                                    { type: "image_url", image_url: { url: imgDataUrl } }
-                                ]
+                                content: contentArray
                             });
                         } else {
                             // HTML without image, convert to plain text
@@ -1093,33 +1155,39 @@ async function sendChatRequest(message, imageDataUrl = null) {
         }
         
         // Add the current message
-        if (imageDataUrl) {
-            // Format message with image for GPT-4o
-            // Ensure the image data URL is properly formatted
-            const formattedImageUrl = imageDataUrl.startsWith('data:image/') 
-                ? imageDataUrl 
-                : `data:image/jpeg;base64,${imageDataUrl.replace(/^data:.*?;base64,/, '')}`;
+        if (imageDataUrls && (Array.isArray(imageDataUrls) ? imageDataUrls.length > 0 : imageDataUrls)) {
+            // Format message with image(s) for GPT-4o
+            // Create content array with text first
+            const contentArray = [
+                {
+                    type: "text",
+                    text: message || "What can you tell me about these HVAC components?"
+                }
+            ];
+            
+            // Handle both single image and array of images
+            const imagesToProcess = Array.isArray(imageDataUrls) ? imageDataUrls : [imageDataUrls];
+            
+            // Add each image to the content array
+            imagesToProcess.forEach(imageUrl => {
+                // Ensure the image data URL is properly formatted
+                const formattedImageUrl = imageUrl.startsWith('data:image/') 
+                    ? imageUrl 
+                    : `data:image/jpeg;base64,${imageUrl.replace(/^data:.*?;base64,/, '')}`;
                 
-            console.log('Sending message with image:', {
-                messageText: message,
-                hasImageData: !!formattedImageUrl,
-                imageUrlLength: formattedImageUrl.length
+                contentArray.push({
+                    type: "image_url",
+                    image_url: {
+                        url: formattedImageUrl
+                    }
+                });
             });
+            
+            console.log(`Sending message with ${imagesToProcess.length} image(s)`);
             
             messages.push({
                 role: "user",
-                content: [
-                    {
-                        type: "text",
-                        text: message || "What can you tell me about this HVAC component?"
-                    },
-                    {
-                        type: "image_url",
-                        image_url: {
-                            url: formattedImageUrl
-                        }
-                    }
-                ]
+                content: contentArray
             });
         } else {
             // Text-only message
