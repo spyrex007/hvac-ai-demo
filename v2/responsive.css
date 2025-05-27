@@ -228,6 +228,24 @@
     display: none;
 }
 
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    /* Improve tap targets for touch devices */
+    button, 
+    .chat-mode-btn,
+    .tab-btn,
+    .feature-card,
+    .chat-list-item {
+        min-height: 44px; /* Apple's recommended minimum */
+    }
+    
+    /* Improve scrolling */
+    .chat-list,
+    .messages-container {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
 @media (max-width: 768px) {
     /* App container layout for mobile */
     .app-container {
@@ -316,6 +334,18 @@
         font-size: 1.25rem;
     }
     
+    /* Main header adjustments */
+    .main-header {
+        flex-direction: column;
+        align-items: center;
+        padding: 0.75rem;
+    }
+    
+    /* Feature cards - stack vertically */
+    .feature-cards {
+        grid-template-columns: 1fr;
+    }
+    
     .chat-mode-btn {
         font-size: 0.8rem;
         padding: 0.4rem 0.6rem;
@@ -329,6 +359,16 @@
     
     .chat-container {
         height: calc(100vh - 240px);
+    }
+    
+    /* Form elements for better mobile experience */
+    input[type="password"],
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        width: 100%;
+        font-size: 16px; /* Prevents iOS zoom on focus */
     }
     
     /* Adjust auth forms for very small screens */
