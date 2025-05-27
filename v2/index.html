@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="modern-styles.css">
     <link rel="stylesheet" href="auth-styles.css">
     <link rel="stylesheet" href="ai-loading-indicator.css">
+    <link rel="stylesheet" href="chat-enhancements.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Add theme color for mobile browsers -->
     <meta name="theme-color" content="#2563eb">
@@ -322,6 +323,22 @@
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="app.js"></script>
+    <script src="chat-enhancements.js"></script>
+    <script>
+        // Initialize chat enhancements after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize chat enhancements
+            if (typeof initChatEnhancements === 'function') {
+                initChatEnhancements();
+                // Update existing messages with IDs and edit buttons
+                setTimeout(function() {
+                    if (typeof updateExistingMessagesWithIdsAndButtons === 'function') {
+                        updateExistingMessagesWithIdsAndButtons();
+                    }
+                }, 1000); // Delay to ensure everything is loaded
+            }
+        });
+    </script>
     <script src="ui-enhancements.js"></script>
     <!-- Script imports -->
     <script type="module" src="supabase.js"></script>

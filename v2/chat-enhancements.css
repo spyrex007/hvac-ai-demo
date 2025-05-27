@@ -1,0 +1,146 @@
+/* Chat Enhancements CSS - Message Editing and Quick Reply Suggestions */
+
+/* Message Editing Styles */
+.message .edit-message-btn {
+    opacity: 0;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.message:hover .edit-message-btn {
+    opacity: 0.7;
+}
+
+.message .edit-message-btn:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.message.editing {
+    padding: 8px 12px;
+}
+
+.edit-message-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-message-textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    font-family: inherit;
+    font-size: inherit;
+    resize: vertical;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+}
+
+.edit-message-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.save-edit-btn, .cancel-edit-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+}
+
+.save-edit-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.save-edit-btn:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.cancel-edit-btn {
+    background-color: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.cancel-edit-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.edited-indicator {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-left: 8px;
+    opacity: 0.7;
+}
+
+/* Quick Reply Suggestions Styles */
+.quick-reply-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.quick-reply-container.hidden {
+    display: none;
+}
+
+.quick-reply-btn {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 6px 14px;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.quick-reply-btn:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--primary-color-light);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .quick-reply-btn {
+    background-color: var(--card-bg-dark);
+    color: var(--text-primary-dark);
+    border-color: var(--border-color-dark);
+}
+
+[data-theme="dark"] .quick-reply-btn:hover {
+    background-color: var(--hover-bg-dark);
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .edit-message-textarea {
+    background-color: var(--input-bg-dark);
+    color: var(--text-primary-dark);
+    border-color: var(--border-color-dark);
+}
+
+/* Message position - necessary for edit button positioning */
+.message {
+    position: relative;
+}
