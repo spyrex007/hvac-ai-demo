@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="loading-states.css">
     <link rel="stylesheet" href="web-search.css">
     <link rel="stylesheet" href="sources-display.css">
+    <link rel="stylesheet" href="hvachat-ui.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Add theme color for mobile browsers -->
     <meta name="theme-color" content="#2563eb">
@@ -107,66 +108,172 @@
         </div>
     </div>
 
-    <div id="appContainer" class="container hidden">
-        <header>
-            <h1>hvacHat - AI Assistant</h1>
-            <div class="header-controls">
-                <button id="settingsBtn" class="settings-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    <div id="appContainer" class="app-container hidden">
+        <!-- Chat Sidebar -->
+        <div class="chat-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Chat History</div>
+                <button id="newChatBtn" class="sidebar-new-chat">+</button>
+            </div>
+            <div class="chat-filter">
+                <button class="filter-btn active">All</button>
+                <button class="filter-btn">Starred</button>
+                <button class="filter-btn">Archived</button>
+            </div>
+            <div class="chat-search">
+                <input type="text" placeholder="Search chats...">
+            </div>
+            <div class="chat-list" id="chatTabs">
+                <!-- Chat list items will be added dynamically by JavaScript -->
+            </div>
+            <div class="sidebar-footer">
+                <button class="restore-button-prominent" id="restoreChat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <polyline points="23 20 23 14 17 14"></polyline>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
                     </svg>
-                    Settings
+                    Restore Deleted Chats
                 </button>
             </div>
-        </header>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Main Header -->
+            <div class="main-header">
+                <div>
+                    <div class="app-title">hvacHat - AI Assistant</div>
+                    <div class="app-subtitle">Professional HVAC Support System</div>
+                </div>
+                <div class="header-controls">                   
+                    <button class="header-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </button>
+                    <button class="header-btn" id="settingsBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                        Settings
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Mode Tabs -->
+            <div class="chat-mode-tabs">
+                <button id="easyChatMode" class="tab-btn active">Easy Chat</button>
+                <button id="presetChatMode" class="tab-btn">Preset Mode</button>
+                <button id="customChatMode" class="tab-btn">Custom Chat</button>
+            </div>
 
         <main>
             <!-- Chat Mode Section -->
             <section id="chatSection" class="mode-section">
-                
-                <!-- Chat Mode Selector -->
-                <div class="chat-mode-selector">
-                    <button id="easyChatMode" class="chat-mode-btn active">Easy Chat</button>
-                    <button id="presetChatMode" class="chat-mode-btn">Preset Mode</button>
-                    <button id="customChatMode" class="chat-mode-btn">Custom Chat</button>
-                </div>
-                
-                <!-- Chat Tabs -->
-                <div class="chat-tabs-container">
-                    <div class="chat-tabs" id="chatTabs">
-                        <!-- Tabs will be added dynamically -->
+                <!-- Feature Cards -->
+                <div class="feature-cards">
+                    <div class="feature-card">
+                        <div class="feature-icon quick-diagnosis">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="feature-title">Quick Diagnosis</div>
                     </div>
-                    <button id="newChatBtn" class="new-chat-btn">+ New Chat</button>
+                    <div class="feature-card">
+                        <div class="feature-icon schedule-service">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="feature-title">Schedule Service</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon generate-report">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="feature-title">Generate Report</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon emergency-call">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                        </div>
+                        <div class="feature-title">Emergency Call</div>
+                    </div>
                 </div>
-                
-                <div class="chat-container">
-                    <div id="chatMessages" class="messages"></div>
-                    <!-- Web Search Toggle (Compact) -->
-                    <div class="compact-web-search-toggle">
-                        <label>Web Search:</label>
-                        <div class="toggle-switch-container">
+
+                <!-- Chat Area -->
+                <div class="chat-area">
+                    <div class="messages-container" id="chatMessages">
+                        <!-- Welcome Message -->
+                        <div class="welcome-message">
+                            <div class="welcome-avatar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div class="welcome-content">
+                                <h3>Welcome to hvacHat Professional</h3>
+                                <p>I'm your AI-powered HVAC assistant. I can help you with diagnostics, maintenance scheduling, energy efficiency analysis, and emergency troubleshooting. How can I assist you today?</p>
+                                <div class="quick-actions">
+                                    <button class="action-btn" id="systemDiagnosticsBtn">System Diagnostics</button>
+                                    <button class="action-btn" id="maintenancePlanningBtn">Maintenance Planning</button>
+                                    <button class="action-btn" id="energyAnalysisBtn">Energy Analysis</button>
+                                    <button class="action-btn" id="emergencySupportBtn">Emergency Support</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Messages will be added dynamically -->
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="input-area">
+                        <div class="input-box">
+                            <textarea id="userInput" placeholder="Type your message... (Press Shift+Enter for new line)"></textarea>
+                            <div class="input-actions">
+                                <button class="input-action-btn">
+                                    <label for="chatImageUpload">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </label>
+                                    <input type="file" id="chatImageUpload" accept="image/*" class="hidden" multiple>
+                                </button>
+                            </div>
+                        </div>
+                        <button id="sendMessage" class="send-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Web Search Toggle below textarea -->
+                    <div class="input-options">
+                        <div class="web-search-toggle-container">
+                            <label for="webSearchToggle">Web Search:</label>
                             <button id="webSearchToggle" class="toggle-switch">
                                 <span class="toggle-slider"></span>
                             </button>
                         </div>
-                    </div>
-                    
-                    <div class="input-area">
-                        <textarea id="userInput" placeholder="Type your message..."></textarea>
-                        <label for="chatImageUpload" class="image-upload-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                            </svg>
-                        </label>
-                        <input type="file" id="chatImageUpload" accept="image/*" class="hidden" multiple>
-                        <button id="sendMessage">Send</button>
-                    </div>                  
-                    
-                    <div class="restore-container">
-                        <button id="restoreChat" class="restore-btn" disabled>Restore Deleted Chat (0)</button>
                     </div>
                 </div>
                 
@@ -388,6 +495,7 @@
     </div>
     <!-- Loading states script -->
     <script src="loading-states.js"></script>
+    <script src="hvachat-ui.js"></script>
     <!-- Markdown parsing library -->
     <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
     <!-- Syntax highlighting -->
