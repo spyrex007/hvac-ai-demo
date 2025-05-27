@@ -38,11 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
     sidebarToggle.addEventListener('click', function() {
         sidebar.classList.toggle('active');
         sidebarOverlay.classList.toggle('active');
-        
-        // Add accessibility attributes for screen readers
-        const isExpanded = sidebar.classList.contains('active');
-        this.setAttribute('aria-expanded', isExpanded);
-        this.setAttribute('aria-label', isExpanded ? 'Close menu' : 'Open menu');
     });
     
     // Close sidebar when clicking overlay
@@ -56,24 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update UI on window resize
     window.addEventListener('resize', updateResponsiveUI);
-    
-    // Close sidebar when a chat is selected on mobile
-    document.addEventListener('click', function(e) {
-        if (isMobile() && sidebar.classList.contains('active')) {
-            // Check if clicked element is a chat list item or its child
-            const chatItem = e.target.closest('.chat-list-item');
-            if (chatItem) {
-                sidebar.classList.remove('active');
-                sidebarOverlay.classList.remove('active');
-                
-                // Update accessibility attributes
-                if (sidebarToggle) {
-                    sidebarToggle.setAttribute('aria-expanded', 'false');
-                    sidebarToggle.setAttribute('aria-label', 'Open menu');
-                }
-            }
-        }
-    });
     
     // Update UI when app container visibility changes
     // This is needed because the sidebar toggle should only be visible when logged in
