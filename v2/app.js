@@ -1545,18 +1545,42 @@ function addToSystemPrompt() {
     
     const additionalPrompt = elements.customSystemPrompt.value.trim();
     if (additionalPrompt) {
-        // If there's no custom system prompt yet, use the default one as a base
-        if (!state.customSystemPrompt) {
-            state.customSystemPrompt = state.systemPrompt;
+        // Check if we're starting fresh or adding to existing
+        const isFirstInstruction = !state.customSystemPrompt || state.customSystemPrompt.trim() === '';
+        
+        if (isFirstInstruction) {
+            // If this is the first instruction, just set it directly
+            state.customSystemPrompt = additionalPrompt;
+        } else {
+            // Otherwise, append to the existing instructions
+            state.customSystemPrompt = `${state.customSystemPrompt}\n\n${additionalPrompt}`;
         }
         
-        // Add to the custom system prompt
-        state.customSystemPrompt = `${state.customSystemPrompt}\n\n${additionalPrompt}`;
+        // Save to localStorage
         localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
         elements.customSystemPrompt.value = '';
         
-        // Update the preview if it's visible
-        updateSystemPromptPreview();
+        // Reset preset selection if we're modifying the system prompt
+        if (elements.presetPrompt && elements.presetPrompt.value) {
+            state.selectedPreset = '';
+            localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
+            elements.presetPrompt.value = '';
+        }
+        
+        // Show success feedback
+        const textarea = elements.customSystemPrompt;
+        textarea.classList.add('success-flash');
+        setTimeout(() => {
+            textarea.classList.remove('success-flash');
+        }, 1000);
+        
+        // Automatically show the preview if it's hidden
+        if (elements.systemPromptPreview && elements.systemPromptPreview.classList.contains('hidden')) {
+            toggleSystemPromptDisplay();
+        } else {
+            // Just update the preview if it's already visible
+            updateSystemPromptPreview();
+        }
     }
 }
 
@@ -1565,21 +1589,32 @@ function replaceSystemPrompt() {
     
     const newPrompt = elements.customSystemPrompt.value.trim();
     if (newPrompt) {
-        // Reset custom system prompt
-        state.customSystemPrompt = '';
+        // Set the new system prompt
+        state.customSystemPrompt = newPrompt;
         localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
-        if (elements.customSystemPrompt) {
-            elements.customSystemPrompt.value = '';
-        }
+        elements.customSystemPrompt.value = '';
         
         // Reset preset selection
         state.selectedPreset = '';
         localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
         if (elements.presetPrompt) {
             elements.presetPrompt.value = '';
-        }    
-        // Update the preview if it's visible
-        updateSystemPromptPreview();
+        }
+        
+        // Show success feedback
+        const textarea = elements.customSystemPrompt;
+        textarea.classList.add('success-flash');
+        setTimeout(() => {
+            textarea.classList.remove('success-flash');
+        }, 1000);
+        
+        // Automatically show the preview if it's hidden
+        if (elements.systemPromptPreview && elements.systemPromptPreview.classList.contains('hidden')) {
+            toggleSystemPromptDisplay();
+        } else {
+            // Just update the preview if it's already visible
+            updateSystemPromptPreview();
+        }
     }
 }
 
@@ -1618,12 +1653,15 @@ function toggleSystemPromptDisplay() {
     if (isHidden) {
         // Show the system prompt preview
         elements.systemPromptPreview.classList.remove('hidden');
-        elements.displaySystemPrompt.textContent = 'Hide';
+        elements.displaySystemPrompt.innerHTML = '<span class="toggle-icon">🔽</span> Hide Current';
         updateSystemPromptPreview();
+        
+        // Scroll to the preview
+        elements.systemPromptPreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
         // Hide the system prompt preview
         elements.systemPromptPreview.classList.add('hidden');
-        elements.displaySystemPrompt.textContent = 'Display';
+        elements.displaySystemPrompt.innerHTML = '<span class="toggle-icon">👁️</span> View Current';
     }
 }
 
@@ -1632,19 +1670,114 @@ function updateSystemPromptPreview() {
     if (!elements.systemPromptContent) return;
     
     // Show the appropriate system prompt based on whether a custom one exists
-    const promptToShow = state.customSystemPrompt || state.systemPrompt;
-    elements.systemPromptContent.textContent = promptToShow;
+    const hasCustomPrompt = state.customSystemPrompt && state.customSystemPrompt.trim() !== '';
+    const promptToShow = hasCustomPrompt ? state.customSystemPrompt : state.systemPrompt;
+    
+    // Clear the content container
+    elements.systemPromptContent.innerHTML = '';
+    
+    if (hasCustomPrompt) {
+        // Split the custom prompt into individual instructions
+        const instructions = state.customSystemPrompt.split('\n\n').filter(instr => instr.trim() !== '');
+        
+        // Create elements for each instruction
+        instructions.forEach((instruction, index) => {
+            const instructionElement = document.createElement('div');
+            instructionElement.className = 'instruction-item';
+            instructionElement.dataset.index = index;
+            
+            const instructionText = document.createElement('div');
+            instructionText.className = 'instruction-text';
+            instructionText.textContent = instruction;
+            
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-instruction-btn';
+            removeButton.innerHTML = '&times;';
+            removeButton.title = 'Remove this instruction';
+            removeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeInstruction(index);
+            });
+            
+            instructionElement.appendChild(instructionText);
+            instructionElement.appendChild(removeButton);
+            elements.systemPromptContent.appendChild(instructionElement);
+        });
+    } else {
+        // Just show the default prompt as text
+        elements.systemPromptContent.textContent = promptToShow;
+    }
+    
+    // Add a visual indicator if using default prompt
+    if (!hasCustomPrompt && elements.systemPromptPreview) {
+        elements.systemPromptPreview.classList.add('using-default');
+    } else if (elements.systemPromptPreview) {
+        elements.systemPromptPreview.classList.remove('using-default');
+    }
+}
+
+// Function to remove a specific instruction by index
+function removeInstruction(index) {
+    if (state.customSystemPrompt) {
+        // Split the custom prompt into individual instructions
+        const instructions = state.customSystemPrompt.split('\n\n').filter(instr => instr.trim() !== '');
+        
+        // Make sure the index is valid
+        if (index >= 0 && index < instructions.length) {
+            // Remove the instruction at the specified index
+            instructions.splice(index, 1);
+            
+            // Update the custom system prompt
+            state.customSystemPrompt = instructions.join('\n\n');
+            
+            // If no instructions left, clear the custom system prompt
+            if (instructions.length === 0) {
+                state.customSystemPrompt = '';
+                localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
+            } else {
+                localStorage.setItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT, state.customSystemPrompt);
+            }
+            
+            // Update the preview
+            updateSystemPromptPreview();
+            
+            // Show feedback animation on the preview container
+            if (elements.systemPromptPreview) {
+                elements.systemPromptPreview.classList.add('success-flash');
+                setTimeout(() => {
+                    elements.systemPromptPreview.classList.remove('success-flash');
+                }, 1000);
+            }
+        }
+    }
 }
 
 // Function to reset system prompt to default
 function resetSystemPromptToDefault() {
-    // Clear the custom system prompt
-    state.customSystemPrompt = '';
-    localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
-    
-    // Update the preview if it's visible
-    if (elements.systemPromptPreview && !elements.systemPromptPreview.classList.contains('hidden')) {
+    // Confirm before resetting
+    if (confirm('Are you sure you want to reset the system instructions? This will remove all custom instructions.')) {
+        // Clear the custom system prompt
+        state.customSystemPrompt = '';
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_SYSTEM_PROMPT);
+        
+        // Reset preset selection
+        state.selectedPreset = '';
+        localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, '');
+        if (elements.presetPrompt) {
+            elements.presetPrompt.value = '';
+        }
+        
+        // Update the preview
         updateSystemPromptPreview();
+        
+        // Show feedback message
+        const previewContent = elements.systemPromptContent;
+        if (previewContent) {
+            previewContent.classList.add('success-flash');
+            setTimeout(() => {
+                previewContent.classList.remove('success-flash');
+            }, 1000);
+        }
     }
 }
 

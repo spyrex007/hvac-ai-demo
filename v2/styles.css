@@ -211,6 +211,7 @@ button:hover {
     border-radius: 0.5rem;
     padding: 1rem;
     margin-top: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .settings-row {
@@ -291,10 +292,35 @@ button:hover {
     color: var(--text-color);
 }
 
-.prompt-actions {
+/* System Prompt Manager Styles */
+.system-prompt-manager {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: rgba(var(--primary-color-rgb), 0.03);
+}
+
+.system-prompt-header {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.system-prompt-header label {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0;
+}
+
+.system-prompt-input-container {
+    margin-bottom: 1rem;
+}
+
+.system-prompt-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
 }
 
 .small-btn {
@@ -306,6 +332,63 @@ button:hover {
     cursor: pointer;
     font-size: 0.9rem;
     transition: background-color 0.2s;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    flex: 1;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.btn-icon {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.toggle-icon {
+    font-size: 1rem;
+}
+
+.danger-btn {
+    background-color: transparent;
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+}
+
+.danger-btn:hover {
+    background-color: var(--error-color);
+    color: white;
 }
 
 .small-btn:hover {
@@ -358,8 +441,123 @@ button:hover {
     border: 1px solid var(--border-color);
 }
 
+.system-prompt-preview {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+    max-height: 300px;
+    overflow: hidden;
+}
+
 .hidden {
     display: none !important;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preview-header span {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.system-prompt-content {
+    font-family: monospace;
+    white-space: pre-wrap;
+    background-color: rgba(var(--primary-color-rgb), 0.05);
+    padding: 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 300px;
+    overflow-y: auto;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Instruction item styles */
+.instruction-item {
+    position: relative;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.instruction-item:last-child {
+    margin-bottom: 0;
+}
+
+.instruction-item:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.instruction-text {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.remove-instruction-btn {
+    background-color: transparent;
+    color: var(--text-color);
+    border: none;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+    border-radius: 50%;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-top: -0.2rem;
+}
+
+.remove-instruction-btn:hover {
+    opacity: 1;
+    color: var(--error-color);
+    background-color: rgba(var(--error-color), 0.1);
+    transform: scale(1.1);
+}
+
+/* Success flash animation for feedback */
+@keyframes successFlash {
+    0% { background-color: var(--card-background); }
+    50% { background-color: rgba(var(--success-color), 0.2); }
+    100% { background-color: var(--card-background); }
+}
+
+.success-flash {
+    animation: successFlash 1s ease;
+}
+
+/* Visual indicator for default system prompt */
+.using-default .system-prompt-content {
+    border-left-color: var(--accent-color);
+    background-color: rgba(var(--primary-color-rgb), 0.02);
+}
+
+.using-default .preview-header::after {
+    content: '(Using Default)';
+    font-size: 0.8rem;
+    color: var(--accent-color);
+    margin-left: 0.5rem;
+    font-style: italic;
 }
 
 .chat-container {

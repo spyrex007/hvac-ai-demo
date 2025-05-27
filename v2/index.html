@@ -142,18 +142,29 @@
                         </div>
                     </div>
                     <div class="settings-row">
-                        <div class="settings-group">
-                            <label for="customSystemPrompt">System Prompt:</label>
-                            <div class="prompt-actions">
-                                <button id="addToSystemPrompt" class="small-btn">Add</button>
-                                <button id="replaceSystemPrompt" class="small-btn">Replace</button>
-                                <button id="displaySystemPrompt" class="small-btn">Display</button>
+                        <div class="settings-group system-prompt-manager">
+                            <div class="system-prompt-header">
+                                <label for="customSystemPrompt">System Instructions:</label>
+                                <button id="displaySystemPrompt" class="small-btn toggle-btn">
+                                    <span class="toggle-icon">👁️</span> View Current
+                                </button>
                             </div>
-                            <textarea id="customSystemPrompt" rows="2" placeholder="Enter additional system instructions..."></textarea>
+                            
+                            <div class="system-prompt-input-container">
+                                <textarea id="customSystemPrompt" rows="3" placeholder="Type instructions here and click 'Apply Instructions' to customize AI behavior..."></textarea>
+                                <div class="system-prompt-actions">
+                                    <button id="addToSystemPrompt" class="action-btn">
+                                        <span class="btn-icon">+</span> Apply Instructions
+                                    </button>
+                                </div>
+                            </div>
+                            
                             <div id="systemPromptPreview" class="system-prompt-preview hidden">
                                 <div class="preview-header">
-                                    <span>Current System Prompt:</span>
-                                    <button id="resetSystemPromptCustom" class="small-btn">Reset</button>
+                                    <span>Current System Instructions:</span>
+                                    <button id="resetSystemPromptCustom" class="small-btn danger-btn">
+                                        <span class="btn-icon">↺</span> Reset
+                                    </button>
                                 </div>
                                 <div id="systemPromptContent" class="system-prompt-content"></div>
                             </div>
