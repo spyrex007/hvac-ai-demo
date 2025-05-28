@@ -321,6 +321,24 @@ button:hover {
     display: flex;
     gap: 0.75rem;
     margin-top: 0.75rem;
+    width: 100%;
+}
+
+/* Specific styling for the Apply Instructions button */
+#addToSystemPrompt {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 160px;
+    justify-content: center;
 }
 
 .small-btn {

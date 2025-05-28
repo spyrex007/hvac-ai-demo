@@ -92,13 +92,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (webSearchToggle) {
         // Get the initial state from localStorage or fallback to false
         const isWebSearchEnabled = localStorage.getItem('hvac_web_search_enabled') === 'true';
+        
+        // Ensure UI matches the actual state
         if (isWebSearchEnabled) {
             webSearchToggle.classList.add('active');
+        } else {
+            webSearchToggle.classList.remove('active');
         }
-
-        webSearchToggle.addEventListener('click', () => {
-            webSearchToggle.classList.toggle('active');
-        });
+        
+        // Make sure we don't duplicate event listeners
+        webSearchToggle.removeEventListener('click', toggleWebSearchUI);
+        webSearchToggle.addEventListener('click', toggleWebSearchUI);
+    }
+    
+    // Function to handle web search toggle UI
+    function toggleWebSearchUI() {
+        // Toggle the UI state
+        const isActive = this.classList.toggle('active');
+        
+        // Update localStorage to match UI
+        localStorage.setItem('hvac_web_search_enabled', isActive);
+        
+        // Update state in app.js if it exists
+        if (window.state) {
+            window.state.webSearchEnabled = isActive;
+        }
+        
+        console.log(`Web search ${isActive ? 'enabled' : 'disabled'} from UI toggle`);
     }
 
     // Make sure the existing filter buttons are functioning
