@@ -237,7 +237,13 @@ function setupQuickReplySuggestions() {
         const container = document.createElement('div');
         container.id = 'quickReplySuggestions';
         container.className = 'quick-reply-container hidden';
-        document.querySelector('.input-area').insertBefore(container, document.getElementById('userInput'));
+        
+        // Fix: Insert at the beginning of input-area instead of trying to insert before userInput
+        // userInput is not a direct child of input-area
+        const inputArea = document.querySelector('.input-area');
+        if (inputArea) {
+            inputArea.insertBefore(container, inputArea.firstChild);
+        }
     }
 }
 
