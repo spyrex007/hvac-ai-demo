@@ -326,7 +326,10 @@ window.addEventListener('load', () => {
 // Expose functions to window scope with error handling
 window.initDynamicContentHandler = function() {
     try {
-        initDynamicContentHandler();
+        // Call the individual functions directly instead of recursively calling initDynamicContentHandler
+        setupMutationObserver();
+        setupResizeHandler();
+        initializeScrollBehavior();
     } catch (error) {
         console.error('Error in initDynamicContentHandler:', error);
     }
@@ -334,7 +337,31 @@ window.initDynamicContentHandler = function() {
 
 window.adjustContainerSizes = function() {
     try {
-        adjustContainerSizes();
+        // Call the original function directly without recursion
+        // Messages container sizing
+        const messagesContainers = document.querySelectorAll('.messages-container');
+        messagesContainers.forEach(container => {
+            ensureContainerSizing(container);
+        });
+        
+        // Modal body sizing
+        const modalBodies = document.querySelectorAll('.modal-body');
+        modalBodies.forEach(modalBody => {
+            const maxHeight = window.innerHeight * 0.7;
+            modalBody.style.maxHeight = `${maxHeight}px`;
+        });
+        
+        // Chat list sizing
+        const chatLists = document.querySelectorAll('.chat-list');
+        chatLists.forEach(chatList => {
+            ensureContainerSizing(chatList);
+        });
+        
+        // Custom chat settings sizing
+        const customChatSettings = document.querySelectorAll('.custom-chat-settings');
+        customChatSettings.forEach(container => {
+            ensureCustomChatSettingsSizing(container);
+        });
     } catch (error) {
         console.error('Error in adjustContainerSizes:', error);
     }

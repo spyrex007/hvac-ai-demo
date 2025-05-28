@@ -676,3 +676,8 @@ function addDynamicStyles() {
 
 // Call this function to add dynamic styles
 addDynamicStyles();
+
+// Expose functions to window scope
+window.addFeedbackToMessage = addFeedbackToMessage;
+window.handleFeedback = handleFeedback;
+window.initFeedbackButtons = initFeedbackButtons;

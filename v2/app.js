@@ -787,14 +787,48 @@ function loadChatMessages(chatId) {
         messageDiv.classList.add('message');
         messageDiv.classList.add(`${msg.role}-message`);
         
+        // Add message ID attribute for edit functionality
+        if (msg.id) {
+            messageDiv.setAttribute('data-message-id', msg.id);
+        } else {
+            // Generate an ID if it doesn't have one
+            msg.id = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            messageDiv.setAttribute('data-message-id', msg.id);
+        }
+        
+        // Add content
         if (msg.isHtml) {
             messageDiv.innerHTML = msg.content;
         } else {
-            messageDiv.innerHTML = msg.content;
+            messageDiv.innerHTML = escapeHtml(msg.content);
         }
         
+        // Add the message to the chat
         elements.chatMessages.appendChild(messageDiv);
+        
+        // Add edit button for user messages
+        if (msg.role === 'user') {
+            // Check if the function is available in window scope
+            if (typeof window.addEditButtonToMessage === 'function') {
+                window.addEditButtonToMessage(messageDiv, msg.id);
+            } else {
+                // Fallback implementation if the function is not available
+                const editButton = document.createElement('button');
+                editButton.className = 'edit-message-btn';
+                editButton.setAttribute('data-message-id', msg.id);
+                editButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+                messageDiv.appendChild(editButton);
+            }
+        }
+        
+        // Add feedback buttons for assistant messages
+        if (msg.role === 'assistant' && typeof addFeedbackToMessage === 'function') {
+            addFeedbackToMessage(messageDiv);
+        }
     });
+    
+    // Save changes to localStorage
+    saveChatsToLocalStorage();
     
     // Scroll to bottom
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
