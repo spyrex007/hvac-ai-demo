@@ -1,0 +1,94 @@
+/* 
+ * Input Area Fixes
+ * Ensures proper layout when images are added to the input area
+ */
+
+/* Fix the input box layout to handle images properly */
+.input-box {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-height: 24px;
+  max-height: 200px; /* Increased to accommodate images */
+  overflow-y: auto;
+}
+
+/* Ensure the textarea maintains its width */
+.input-box textarea {
+  width: 100%;
+  border: none;
+  resize: none;
+  outline: none;
+  padding: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  min-height: 24px;
+}
+
+/* Style the chat images container */
+.chat-images-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* Style the image preview containers */
+.chat-image-preview-container {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 100px;
+  max-height: 100px;
+}
+
+/* Style the image previews */
+.chat-image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Style the remove image button */
+.remove-image-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Fix input area layout */
+.input-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chat-images-container {
+    gap: 4px;
+  }
+  
+  .chat-image-preview-container {
+    max-width: 80px;
+    max-height: 80px;
+  }
+}
