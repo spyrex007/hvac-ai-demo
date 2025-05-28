@@ -169,8 +169,73 @@ function initializeScrollBehavior() {
         ensureHorizontalScrollContainer(container);
     });
     
+    // Set up specific observer for custom chat settings
+    setupCustomChatSettingsObserver();
+    
     // Initial container size adjustment
     adjustContainerSizes();
+}
+
+// Set up a specific observer for the custom chat settings container
+function setupCustomChatSettingsObserver() {
+    const customChatSettings = document.getElementById('customChatSettings');
+    
+    if (customChatSettings) {
+        // Create a new observer instance specifically for custom chat settings
+        const observer = new MutationObserver((mutations) => {
+            // Process mutations
+            let contentChanged = false;
+            
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList' || 
+                    (mutation.type === 'attributes' && 
+                     (mutation.attributeName === 'class' || mutation.attributeName === 'style'))) {
+                    contentChanged = true;
+                }
+            });
+            
+            // If content changed, ensure proper sizing and scrolling
+            if (contentChanged) {
+                ensureCustomChatSettingsSizing(customChatSettings);
+                
+                // Handle any newly added elements
+                const newElements = customChatSettings.querySelectorAll('select, textarea, input, button');
+                newElements.forEach(element => {
+                    // Ensure new form elements don't cause layout issues
+                    element.addEventListener('focus', () => {
+                        ensureCustomChatSettingsSizing(customChatSettings);
+                    });
+                    
+                    element.addEventListener('change', () => {
+                        setTimeout(() => ensureCustomChatSettingsSizing(customChatSettings), 100);
+                    });
+                });
+            }
+        });
+        
+        // Start observing the custom chat settings container
+        observer.observe(customChatSettings, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style']
+        });
+        
+        // Also handle visibility changes
+        const handleVisibilityChange = () => {
+            if (!customChatSettings.classList.contains('hidden')) {
+                ensureCustomChatSettingsSizing(customChatSettings);
+            }
+        };
+        
+        // Add event listeners for tab changes that might show the custom chat settings
+        const customChatModeBtn = document.getElementById('customChatMode');
+        if (customChatModeBtn) {
+            customChatModeBtn.addEventListener('click', () => {
+                setTimeout(handleVisibilityChange, 100);
+            });
+        }
+    }
 }
 
 // Adjust container sizes based on viewport
@@ -193,6 +258,12 @@ function adjustContainerSizes() {
     chatLists.forEach(chatList => {
         ensureContainerSizing(chatList);
     });
+    
+    // Custom chat settings sizing
+    const customChatSettings = document.querySelectorAll('.custom-chat-settings');
+    customChatSettings.forEach(container => {
+        ensureCustomChatSettingsSizing(container);
+    });
 }
 
 // Ensure container has proper sizing
@@ -206,6 +277,30 @@ function ensureContainerSizing(container) {
         const viewportHeight = window.innerHeight;
         container.style.maxHeight = `${viewportHeight - 200}px`;
     }
+}
+
+// Ensure custom chat settings container has proper sizing and scrolling behavior
+function ensureCustomChatSettingsSizing(container) {
+    // Make sure overflow is set properly
+    container.style.overflowY = 'auto';
+    container.style.overscrollBehavior = 'contain';
+    
+    // Calculate appropriate max height based on content and viewport
+    const viewportHeight = window.innerHeight;
+    const maxHeight = Math.min(500, viewportHeight * 0.6); // Either 500px or 60% of viewport, whichever is smaller
+    container.style.maxHeight = `${maxHeight}px`;
+    
+    // Ensure the container doesn't push other elements down when content is added dynamically
+    // Add a small delay to handle dynamic content injection
+    setTimeout(() => {
+        // Check if the container has a scrollbar
+        const hasScrollbar = container.scrollHeight > container.clientHeight;
+        
+        // Add padding for scrollbar if needed
+        if (hasScrollbar) {
+            container.style.paddingRight = '8px';
+        }
+    }, 100);
 }
 
 // Run initialization when DOM is fully loaded

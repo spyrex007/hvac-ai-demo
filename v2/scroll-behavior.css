@@ -56,6 +56,14 @@ pre {
   overflow-y: auto;
 }
 
+/* Custom chat settings container with proper scrolling for dynamic content */
+.custom-chat-settings {
+  max-height: 500px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 8px; /* Add padding for scrollbar */
+}
+
 .modal-body {
   max-height: 70vh;
 }
