@@ -100,25 +100,30 @@ document.addEventListener('DOMContentLoaded', () => {
             webSearchToggle.classList.remove('active');
         }
         
-        // Make sure we don't duplicate event listeners
-        webSearchToggle.removeEventListener('click', toggleWebSearchUI);
-        webSearchToggle.addEventListener('click', toggleWebSearchUI);
+        // We're NOT adding an event listener here anymore to avoid conflicts with app.js
+        // The event listener in app.js will handle the toggle functionality
     }
     
-    // Function to handle web search toggle UI
-    function toggleWebSearchUI() {
-        // Toggle the UI state
-        const isActive = this.classList.toggle('active');
+    // This function is no longer used directly as an event handler
+    // but we'll keep it for potential future use
+    function syncWebSearchUIState() {
+        const webSearchToggle = document.getElementById('webSearchToggle');
+        if (!webSearchToggle) return;
         
-        // Update localStorage to match UI
-        localStorage.setItem('hvac_web_search_enabled', isActive);
+        // Get the current state from localStorage
+        const isActive = localStorage.getItem('hvac_web_search_enabled') === 'true';
+        
+        // Update UI to match state
+        if (isActive) {
+            webSearchToggle.classList.add('active');
+        } else {
+            webSearchToggle.classList.remove('active');
+        }
         
         // Update state in app.js if it exists
         if (window.state) {
             window.state.webSearchEnabled = isActive;
         }
-        
-        console.log(`Web search ${isActive ? 'enabled' : 'disabled'} from UI toggle`);
     }
 
     // Make sure the existing filter buttons are functioning

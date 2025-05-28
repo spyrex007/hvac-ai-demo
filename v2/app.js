@@ -2162,7 +2162,7 @@ function saveCustomChatSettings() {
 }
 
 // Web Search Toggle Functionality
-function toggleWebSearch() {
+function toggleWebSearch(event) {
     // Toggle the state
     state.webSearchEnabled = !state.webSearchEnabled;
     
@@ -2174,6 +2174,11 @@ function toggleWebSearch() {
     
     // Log the change
     console.log(`Web search ${state.webSearchEnabled ? 'enabled' : 'disabled'}`);
+    
+    // Prevent the event from being handled multiple times
+    if (event) {
+        event.stopPropagation();
+    }
 }
 
 // Update the web search status indicator
@@ -2191,9 +2196,10 @@ function updateWebSearchStatus() {
 // Initialize
 updatePartsTable();
 
-// Initialize web search status
-// Make sure the state and UI are in sync
+// Initialize web search state from localStorage
 state.webSearchEnabled = localStorage.getItem(STORAGE_KEYS.WEB_SEARCH_ENABLED) === 'true';
+
+// Make sure the UI reflects the correct state on page load
 updateWebSearchStatus();
 
 // Expose state to window for access from other scripts
