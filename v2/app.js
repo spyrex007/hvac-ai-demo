@@ -1525,18 +1525,42 @@ function addMessageToChat(role, content, isHtml = false, sources = null) {
         }
     }
     
-    // Save the message to the current chat
+    // Add the message to the state
     if (state.activeChatId) {
         const chatIndex = state.chats.findIndex(chat => chat.id === state.activeChatId);
         if (chatIndex !== -1) {
-            state.chats[chatIndex].messages.push({
+            // Generate a unique ID for the message
+            const messageId = generateMessageId();
+            
+            // Create message object
+            const messageObj = {
+                id: messageId,
                 role,
                 content,
                 isHtml,
-                sources: sources || null // Save sources with the message
-            });
+                timestamp: new Date().toISOString()
+            };
             
-            // Save to localStorage
+            // Add sources if available
+            if (sources) {
+                messageObj.sources = sources;
+            }
+            
+            // Add to chat
+            state.chats[chatIndex].messages.push(messageObj);
+            
+            // If this is the first user message and the chat title is still the default,
+            // generate a meaningful title based on the user's prompt
+            if (role === 'user' && state.chats[chatIndex].title === '...' && state.chats[chatIndex].messages.length === 1) {
+                // Generate title from user message
+                const title = generateChatTitle(content);
+                state.chats[chatIndex].title = title;
+                
+                // Update the chat tabs to show the new title
+                updateChatTabs();
+            }
+            
+            // Save to local storage
             saveChatsToLocalStorage();
         }
     }
@@ -1550,6 +1574,40 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// Function to generate a meaningful chat title based on the user's prompt
+function generateChatTitle(message) {
+    // Trim the message and limit its length
+    let title = message.trim();
+    
+    // Remove any HTML tags if present
+    title = title.replace(/<[^>]*>/g, '');
+    
+    // If the message is too long, truncate it and add ellipsis
+    const maxLength = 30;
+    if (title.length > maxLength) {
+        // Try to find a good breaking point (space, period, comma, etc.)
+        const breakPoint = title.substring(0, maxLength).lastIndexOf(' ');
+        if (breakPoint > maxLength / 2) {
+            // If we found a good breaking point, use it
+            title = title.substring(0, breakPoint) + '...';
+        } else {
+            // Otherwise just truncate at maxLength
+            title = title.substring(0, maxLength) + '...';
+        }
+    }
+    
+    // If the title is empty or just whitespace, use a default
+    if (!title || title.length === 0) {
+        // Generate a timestamp-based title
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString();
+        const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        title = `Chat - ${formattedDate} ${formattedTime}`;
+    }
+    
+    return title;
 }
 
 // AI Loading Indicator Functions
