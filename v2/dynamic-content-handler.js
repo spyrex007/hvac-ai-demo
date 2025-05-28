@@ -47,14 +47,18 @@ function setupMutationObserver() {
 
 // Handle newly added DOM nodes
 function handleAddedNodes(nodes) {
-    nodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
+    // Ensure nodes is iterable by converting to array
+    const nodesArray = Array.from(nodes || []);
+    
+    nodesArray.forEach(node => {
+        if (node && node.nodeType === Node.ELEMENT_NODE) {
             // Apply scrolling behavior to the new element if it's a container
             applyScrollBehaviorToElement(node);
             
             // Check children as well
             if (node.children && node.children.length > 0) {
-                handleAddedNodes(node.children);
+                // Pass as array to avoid potential issues
+                handleAddedNodes(Array.from(node.children));
             }
         }
     });
@@ -205,14 +209,38 @@ function ensureContainerSizing(container) {
 }
 
 // Run initialization when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initDynamicContentHandler);
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initDynamicContentHandler();
+        console.log('Dynamic content handler initialized successfully');
+    } catch (error) {
+        console.error('Error initializing dynamic content handler:', error);
+    }
+});
 
 // Handle dynamic content even after initial page load
 window.addEventListener('load', () => {
-    // Re-check sizing after all resources are loaded
-    setTimeout(adjustContainerSizes, 500);
+    try {
+        // Re-check sizing after all resources are loaded
+        setTimeout(adjustContainerSizes, 500);
+    } catch (error) {
+        console.error('Error adjusting container sizes:', error);
+    }
 });
 
-// Expose functions to window scope
-window.initDynamicContentHandler = initDynamicContentHandler;
-window.adjustContainerSizes = adjustContainerSizes;
+// Expose functions to window scope with error handling
+window.initDynamicContentHandler = function() {
+    try {
+        initDynamicContentHandler();
+    } catch (error) {
+        console.error('Error in initDynamicContentHandler:', error);
+    }
+};
+
+window.adjustContainerSizes = function() {
+    try {
+        adjustContainerSizes();
+    } catch (error) {
+        console.error('Error in adjustContainerSizes:', error);
+    }
+};
