@@ -545,3 +545,5 @@ function integrateWithDynamicContentHandler() {
 // Expose functions to window scope
 window.initChatEnhancements = initChatEnhancements;
 window.updateExistingMessagesWithIdsAndButtons = updateExistingMessagesWithIdsAndButtons;
+window.addEditButtonToMessage = addEditButtonToMessage;
+window.generateMessageId = generateMessageId;
