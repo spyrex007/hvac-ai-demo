@@ -1,0 +1,95 @@
+/* 
+ * Scroll Behavior CSS
+ * Ensures proper scrolling behavior for dynamically injected elements
+ */
+
+/* Global scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.8);
+}
+
+/* Ensure all containers that might have dynamic content handle overflow properly */
+.messages-container, 
+.chat-area, 
+.modal-content,
+.modal-body,
+.custom-chat-settings,
+.edit-message-container,
+.quick-reply-container,
+.chat-list,
+.settings-content {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Ensure horizontal scrolling for containers that might need it */
+.quick-reply-container,
+.code-block,
+pre {
+  overflow-x: auto;
+}
+
+/* Fixed height for messages container to prevent pushing other UI elements */
+.messages-container {
+  height: 400px; /* Fixed height instead of max-height */
+  min-height: 400px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.modal-body {
+  max-height: 70vh;
+}
+
+.chat-list {
+  max-height: calc(100vh - 200px);
+}
+
+/* Ensure flex containers wrap properly with dynamic content */
+.feature-cards,
+.settings-row,
+.edit-message-actions,
+.quick-reply-container {
+  flex-wrap: wrap;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+  .messages-container {
+    max-height: calc(100vh - 280px);
+  }
+  
+  .edit-message-textarea {
+    min-height: 80px;
+  }
+  
+  .quick-reply-container {
+    padding: 0 8px;
+  }
+}
+
+/* Handle nested scrollable elements properly */
+.modal-content .scrollable-content,
+.settings-tab-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}

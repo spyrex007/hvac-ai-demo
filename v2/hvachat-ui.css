@@ -180,6 +180,14 @@ body {
     overflow: hidden;
 }
 
+/* Chat Area Layout */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex: 1;
+}
+
 /* Header */
 .main-header {
     background-color: var(--header-bg);

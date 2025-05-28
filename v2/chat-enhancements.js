@@ -389,23 +389,30 @@ function hideQuickReplySuggestions() {
 function initChatEnhancements() {
     setupMessageEditing();
     setupQuickReplySuggestions();
-    
-    // Generate suggestions when AI responds
-    const originalAddMessageToChat = window.addMessageToChat;
-    if (originalAddMessageToChat) {
-        window.addMessageToChat = function(role, content, isHtml = false) {
-            // Call the original function
-            originalAddMessageToChat(role, content, isHtml);
-            
-            // Generate suggestions if it's an AI message
-            if (role === 'assistant') {
-                setTimeout(generateQuickReplySuggestions, 500); // Delay to ensure message is rendered
-            }
-        };
+        
+    // If the chats already exist, update them with message IDs
+    if (state && state.chats && state.chats.length > 0) {
+        updateExistingMessagesWithIdsAndButtons();
     }
-    
-    // Add message IDs to new messages
+        
+    // Wait a bit to handle any initial setup delays
+    setTimeout(() => {
+        // Ensure older messages have edit buttons
+        updateExistingMessagesWithIdsAndButtons();
+            
+        // Ensure proper scrolling for dynamic content
+        if (window.adjustContainerSizes) {
+            window.adjustContainerSizes();
+        }
+    }, 1000);
+        
+    // Modify addMessageToChat to add IDs to messages
     modifyAddMessageToChatForIds();
+        
+    // Integrate with dynamic content handler
+    integrateWithDynamicContentHandler();
+        
+    console.log('Chat enhancements initialized');
 }
 
 // Modify the addMessageToChat function to add IDs to messages
@@ -491,6 +498,48 @@ function updateExistingMessagesWithIdsAndButtons() {
             });
         }
     }
+}
+
+// Integration with dynamic content handler
+function integrateWithDynamicContentHandler() {
+    // Hook into message rendering to ensure scroll after dynamic content is added
+    const originalAddMessageToChat = window.addMessageToChat;
+    if (originalAddMessageToChat) {
+        window.addMessageToChat = function(role, content, isHtml = false) {
+            // Call the original function
+            originalAddMessageToChat(role, content, isHtml);
+            
+            // Generate suggestions if it's an AI message
+            if (role === 'assistant') {
+                setTimeout(generateQuickReplySuggestions, 500); // Delay to ensure message is rendered
+            }
+            
+            // Ensure proper scrolling after adding content
+            if (window.adjustContainerSizes) {
+                setTimeout(() => window.adjustContainerSizes(), 200);
+            }
+            
+            // Scroll to the bottom of the messages container
+            setTimeout(() => {
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }, 100);
+        };
+    }
+    
+    // Handle edits to ensure proper container sizing
+    const originalSaveEditedMessage = saveEditedMessage;
+    window.saveEditedMessage = function(chatId, messageId, newContent) {
+        // Call original function
+        originalSaveEditedMessage(chatId, messageId, newContent);
+        
+        // Adjust container sizes after edit
+        if (window.adjustContainerSizes) {
+            setTimeout(() => window.adjustContainerSizes(), 200);
+        }
+    };
 }
 
 // Expose functions to window scope

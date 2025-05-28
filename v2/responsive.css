@@ -1,5 +1,6 @@
 /* Responsive Design Improvements for HVAC AI Demo
  * Enhances mobile experience with better layouts and controls
+ * Improved to handle dynamically injected content with proper scroll behavior
  */
 
 /* Base Mobile Styles */
@@ -71,7 +72,14 @@
     
     /* Chat container */
     .chat-container {
-        height: calc(100vh - 280px);
+        height: auto;
+    }
+    
+    /* Messages container - fixed height */
+    .messages-container {
+        height: 350px; /* Slightly smaller on mobile */
+        min-height: 350px;
+        max-height: 350px;
     }
     
     .messages {
