@@ -430,6 +430,13 @@ textarea#userInput:focus {
   gap: 0.5rem;
   margin-top: 0.5rem;
   justify-content: flex-end;
+  opacity: 1 !important; /* Ensure buttons are always visible */
+}
+
+.assistant-message .feedback-buttons {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
 }
 
 .feedback-btn {
@@ -445,6 +452,12 @@ textarea#userInput:focus {
   transition: all 0.3s ease;
   color: var(--primary-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  opacity: 0.85; /* Default opacity */
+}
+
+/* Make buttons more visible on hover */
+.feedback-buttons:hover .feedback-btn {
+  opacity: 1;
 }
 
 .feedback-btn:hover {

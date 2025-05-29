@@ -781,50 +781,9 @@ function loadChatMessages(chatId) {
     const chat = state.chats.find(c => c.id === chatId);
     if (!chat) return;
     
-    // Add each message to the UI
+    // Add each message to the UI with consistent formatting
     chat.messages.forEach(msg => {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('message');
-        messageDiv.classList.add(`${msg.role}-message`);
-        
-        // Add message ID attribute for edit functionality
-        if (msg.id) {
-            messageDiv.setAttribute('data-message-id', msg.id);
-        } else {
-            // Generate an ID if it doesn't have one
-            msg.id = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            messageDiv.setAttribute('data-message-id', msg.id);
-        }
-        
-        // Add content
-        if (msg.isHtml) {
-            messageDiv.innerHTML = msg.content;
-        } else {
-            messageDiv.innerHTML = escapeHtml(msg.content);
-        }
-        
-        // Add the message to the chat
-        elements.chatMessages.appendChild(messageDiv);
-        
-        // Add edit button for user messages
-        if (msg.role === 'user') {
-            // Check if the function is available in window scope
-            if (typeof window.addEditButtonToMessage === 'function') {
-                window.addEditButtonToMessage(messageDiv, msg.id);
-            } else {
-                // Fallback implementation if the function is not available
-                const editButton = document.createElement('button');
-                editButton.className = 'edit-message-btn';
-                editButton.setAttribute('data-message-id', msg.id);
-                editButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
-                messageDiv.appendChild(editButton);
-            }
-        }
-        
-        // Add feedback buttons for assistant messages
-        if (msg.role === 'assistant' && typeof addFeedbackToMessage === 'function') {
-            addFeedbackToMessage(messageDiv);
-        }
+        renderMessage(msg);
     });
     
     // Save changes to localStorage
@@ -832,6 +791,166 @@ function loadChatMessages(chatId) {
     
     // Scroll to bottom
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+}
+
+// Unified message rendering function to ensure consistency
+function renderMessage(msg) {
+    // Create message container
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${msg.role}-message`;
+    messageDiv.setAttribute('data-message-id', msg.id);
+    
+    // Create content container
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    // Add message content with proper formatting
+    if (msg.isHtml) {
+        // For HTML content, just set innerHTML directly
+        contentDiv.innerHTML = msg.content;
+    } else {
+        // For non-HTML content, use markdown parsing like in addMessageToChat
+        if (typeof markdownit === 'function') {
+            try {
+                // Parse markdown in the content
+                const md = markdownit({
+                    linkify: true,
+                    highlight: function (str, lang) {
+                        if (window.hljs && lang && window.hljs.getLanguage(lang)) {
+                            try {
+                                return window.hljs.highlight(str, { language: lang }).value;
+                            } catch (err) {}
+                        }
+                        return ''; // use external default escaping
+                    }
+                });
+                
+                contentDiv.innerHTML = md.render(msg.content);
+                
+                // Add syntax highlighting to code blocks if hljs is available
+                if (window.hljs) {
+                    contentDiv.querySelectorAll('pre code').forEach((block) => {
+                        window.hljs.highlightElement(block);
+                    });
+                }
+            } catch (err) {
+                console.error('Error parsing markdown:', err);
+                // Fallback to plain text with basic formatting
+                contentDiv.innerHTML = msg.content
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n/g, '<br>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            }
+        } else {
+            // Fallback if markdown-it is not available
+            contentDiv.innerHTML = msg.content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+    }
+    
+    // Add the content div to the message
+    messageDiv.appendChild(contentDiv);
+    
+    // Add sources if available (for assistant messages)
+    if (msg.sources && Array.isArray(msg.sources) && msg.sources.length > 0 && msg.role === 'assistant') {
+        const sourcesContainer = document.createElement('div');
+        sourcesContainer.className = 'sources-container';
+        
+        const sourcesTitle = document.createElement('div');
+        sourcesTitle.className = 'sources-title';
+        sourcesTitle.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            Sources
+        `;
+        sourcesContainer.appendChild(sourcesTitle);
+        
+        const sourcesList = document.createElement('div');
+        sourcesList.className = 'sources-list';
+        
+        msg.sources.forEach((source, index) => {
+            const sourceItem = document.createElement('div');
+            sourceItem.className = 'source-item';
+            
+            const sourceNumber = document.createElement('div');
+            sourceNumber.className = 'source-number';
+            sourceNumber.textContent = index + 1;
+            
+            const sourceLink = document.createElement('a');
+            sourceLink.className = 'source-link';
+            sourceLink.href = source.url;
+            sourceLink.target = '_blank';
+            sourceLink.rel = 'noopener noreferrer';
+            
+            const sourceContent = document.createElement('div');
+            sourceContent.className = 'source-content';
+            
+            const sourceTitle = document.createElement('div');
+            sourceTitle.className = 'source-title';
+            sourceTitle.textContent = source.title || 'Web Source';
+            
+            const sourceUrl = document.createElement('div');
+            sourceUrl.className = 'source-url';
+            sourceUrl.textContent = source.url;
+            
+            sourceContent.appendChild(sourceTitle);
+            sourceContent.appendChild(sourceUrl);
+            
+            sourceLink.appendChild(sourceContent);
+            sourceItem.appendChild(sourceNumber);
+            sourceItem.appendChild(sourceLink);
+            sourcesList.appendChild(sourceItem);
+        });
+        
+        sourcesContainer.appendChild(sourcesList);
+        messageDiv.appendChild(sourcesContainer);
+    }
+    
+    // Add the message to the chat container
+    elements.chatMessages.appendChild(messageDiv);
+    
+    // Add edit button for user messages
+    if (msg.role === 'user') {
+        // Check if the function is available in window scope
+        if (typeof window.addEditButtonToMessage === 'function') {
+            window.addEditButtonToMessage(messageDiv, msg.id);
+        } else {
+            // Fallback implementation if the function is not available
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-message-btn';
+            editButton.setAttribute('data-message-id', msg.id);
+            editButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+            messageDiv.appendChild(editButton);
+        }
+    }
+    
+    // Add feedback buttons for assistant messages
+    if (msg.role === 'assistant') {
+        // Apply any saved feedback state
+        if (msg.feedback) {
+            messageDiv.setAttribute('data-feedback-given', msg.feedback);
+        }
+        
+        // Make sure we wait until the element is fully rendered before adding feedback
+        setTimeout(() => {
+            if (typeof window.addFeedbackToMessage === 'function') {
+                window.addFeedbackToMessage(messageDiv);
+            } else if (typeof addFeedbackToMessage === 'function') {
+                addFeedbackToMessage(messageDiv);
+            }
+        }, 0);
+    }
+    
+    return messageDiv;
 }
 
 function clearChatMessages() {
@@ -1389,163 +1508,27 @@ async function sendChatRequest(message, imageDataUrls = null) {
 }
 
 function addMessageToChat(role, content, isHtml = false, sources = null) {
-    // Create a message element
-    const messageElement = document.createElement('div');
-    messageElement.className = `message ${role}`;
+    // Create a message object first
+    const messageId = generateMessageId();
     
-    // Add message content
-    let messageContent;
+    // Create message object
+    const messageObj = {
+        id: messageId,
+        role,
+        content,
+        isHtml,
+        timestamp: new Date().toISOString()
+    };
     
-    if (isHtml) {
-        // If it's HTML content, create a div and set innerHTML
-        messageContent = document.createElement('div');
-        messageContent.className = 'message-content';
-        messageContent.innerHTML = content;
-    } else {
-        // For text content, create a div and use markdown parsing
-        messageContent = document.createElement('div');
-        messageContent.className = 'message-content';
-        
-        // Check if markdown-it is available
-        if (typeof markdownit === 'function') {
-            try {
-                // Parse markdown in the content
-                const md = markdownit({
-                    linkify: true,
-                    highlight: function (str, lang) {
-                        if (window.hljs && lang && window.hljs.getLanguage(lang)) {
-                            try {
-                                return window.hljs.highlight(str, { language: lang }).value;
-                            } catch (err) {}
-                        }
-                        return ''; // use external default escaping
-                    }
-                });
-                
-                messageContent.innerHTML = md.render(content);
-                
-                // Add syntax highlighting to code blocks if hljs is available
-                if (window.hljs) {
-                    messageContent.querySelectorAll('pre code').forEach((block) => {
-                        window.hljs.highlightElement(block);
-                    });
-                }
-            } catch (err) {
-                console.error('Error parsing markdown:', err);
-                // Fallback to plain text with basic formatting
-                messageContent.innerHTML = content
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/\n/g, '<br>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            }
-        } else {
-            // Fallback if markdown-it is not available
-            messageContent.innerHTML = content
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        }
-    }
-    
-    messageElement.appendChild(messageContent);
-    
-    // Add sources if available (from web search)
-    if (sources && Array.isArray(sources) && sources.length > 0 && role === 'assistant') {
-        const sourcesContainer = document.createElement('div');
-        sourcesContainer.className = 'sources-container';
-        
-        const sourcesTitle = document.createElement('div');
-        sourcesTitle.className = 'sources-title';
-        sourcesTitle.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12.01" y2="8"></line>
-            </svg>
-            Sources
-        `;
-        sourcesContainer.appendChild(sourcesTitle);
-        
-        const sourcesList = document.createElement('div');
-        sourcesList.className = 'sources-list';
-        
-        sources.forEach((source, index) => {
-            const sourceItem = document.createElement('div');
-            sourceItem.className = 'source-item';
-            
-            const sourceNumber = document.createElement('div');
-            sourceNumber.className = 'source-number';
-            sourceNumber.textContent = index + 1;
-            
-            const sourceLink = document.createElement('a');
-            sourceLink.className = 'source-link';
-            sourceLink.href = source.url;
-            sourceLink.target = '_blank';
-            sourceLink.rel = 'noopener noreferrer';
-            
-            const sourceContent = document.createElement('div');
-            sourceContent.className = 'source-content';
-            
-            const sourceTitle = document.createElement('div');
-            sourceTitle.className = 'source-title';
-            sourceTitle.textContent = source.title || 'Web Source';
-            
-            const sourceUrl = document.createElement('div');
-            sourceUrl.className = 'source-url';
-            sourceUrl.textContent = source.url;
-            
-            sourceContent.appendChild(sourceTitle);
-            sourceContent.appendChild(sourceUrl);
-            
-            sourceLink.appendChild(sourceContent);
-            sourceItem.appendChild(sourceNumber);
-            sourceItem.appendChild(sourceLink);
-            sourcesList.appendChild(sourceItem);
-        });
-        
-        sourcesContainer.appendChild(sourcesList);
-        messageElement.appendChild(sourcesContainer);
-    }
-    
-    // Add to the messages container
-    elements.chatMessages.appendChild(messageElement);
-    
-    // Scroll to the bottom of the messages
-    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-    
-    // Add feedback buttons for AI messages
-    if (role === 'assistant') {
-        // Add feedback buttons if UI Enhancements module is available
-        if (window.UIEnhancements && typeof window.UIEnhancements.addFeedbackButtons === 'function') {
-            window.UIEnhancements.addFeedbackButtons(messageElement);
-        }
+    // Add sources if available
+    if (sources) {
+        messageObj.sources = sources;
     }
     
     // Add the message to the state
     if (state.activeChatId) {
         const chatIndex = state.chats.findIndex(chat => chat.id === state.activeChatId);
         if (chatIndex !== -1) {
-            // Generate a unique ID for the message
-            const messageId = generateMessageId();
-            
-            // Create message object
-            const messageObj = {
-                id: messageId,
-                role,
-                content,
-                isHtml,
-                timestamp: new Date().toISOString()
-            };
-            
-            // Add sources if available
-            if (sources) {
-                messageObj.sources = sources;
-            }
-            
             // Add to chat
             state.chats[chatIndex].messages.push(messageObj);
             
@@ -1564,6 +1547,14 @@ function addMessageToChat(role, content, isHtml = false, sources = null) {
             saveChatsToLocalStorage();
         }
     }
+    
+    // Use the unified rendering function to display the message
+    const messageElement = renderMessage(messageObj);
+    
+    // Scroll to the bottom of the messages
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    
+    return messageElement;
 }
 
 // Utility Functions

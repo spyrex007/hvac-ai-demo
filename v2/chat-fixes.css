@@ -1,0 +1,85 @@
+/* Fix for chat formatting issues when switching between chats */
+
+/* Ensure message structure is consistent */
+.message {
+  position: relative;
+  margin-bottom: 12px;
+  overflow: visible !important;
+}
+
+/* Fix for the assistant messages */
+.assistant-message {
+  background-color: var(--card-bg, #f8fafc);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 10px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Always show edit buttons with consistent styling */
+.user-message .edit-message-btn {
+  display: block !important;
+  opacity: 0.7;
+  z-index: 100;
+}
+
+/* Ensure feedback buttons are always visible and correctly positioned */
+.feedback-buttons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-top: 12px !important;
+  gap: 8px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: 50 !important;
+}
+
+/* Feedback button styles to ensure they're always visible */
+.feedback-btn {
+  background-color: var(--card-bg, #f8fafc) !important;
+  border: 1px solid var(--primary-color-light, #60a5fa) !important;
+  padding: 5px 10px !important;
+  border-radius: 30px !important;
+  font-size: 0.85rem !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  color: var(--primary-color, #2563eb) !important;
+  opacity: 0.9 !important;
+}
+
+/* Fix hover styles */
+.feedback-btn:hover {
+  background-color: var(--primary-color, #2563eb) !important;
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Selected feedback button */
+.feedback-btn.selected {
+  background-color: var(--primary-color, #2563eb) !important;
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Disabled feedback button */
+.feedback-btn.disabled {
+  opacity: 0.6 !important;
+  cursor: default !important;
+}
+
+/* Fix for feedback button content */
+.feedback-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* Ensure proper structure for message content */
+.message-content {
+  width: 100% !important;
+}

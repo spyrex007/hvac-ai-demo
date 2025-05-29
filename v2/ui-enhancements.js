@@ -248,14 +248,28 @@ function initFeedbackButtons() {
 
 // Add feedback buttons to a message
 function addFeedbackToMessage(message) {
+    // Make sure the message is a DOM element
+    if (!message || !message.classList) {
+        console.warn('Invalid message element provided to addFeedbackToMessage');
+        return;
+    }
+    
     // Check if feedback buttons already exist
     if (message.querySelector('.feedback-buttons')) {
         return;
     }
     
-    // Create feedback buttons
+    // Ensure the message has the assistant-message class
+    if (!message.classList.contains('assistant-message')) {
+        return;
+    }
+    
+    // Create feedback buttons container
     const feedbackButtons = document.createElement('div');
     feedbackButtons.className = 'feedback-buttons';
+    feedbackButtons.setAttribute('data-added-time', Date.now()); // Add timestamp for debugging
+    
+    // Set the HTML content for the feedback buttons
     feedbackButtons.innerHTML = `
         <button class="feedback-btn" data-feedback="helpful">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -273,7 +287,11 @@ function addFeedbackToMessage(message) {
     
     // Add event listeners to feedback buttons
     feedbackButtons.querySelectorAll('.feedback-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function(e) {
+            // Prevent event from bubbling up and potentially triggering other listeners
+            e.preventDefault();
+            e.stopPropagation();
+            
             const feedback = this.dataset.feedback;
             handleFeedback(message, feedback);
             
@@ -288,11 +306,72 @@ function addFeedbackToMessage(message) {
             
             // Show thank you toast
             showToast('Thank you for your feedback!', 'success');
+            
+            // Store the feedback in the message element as a data attribute
+            message.setAttribute('data-feedback-given', feedback);
+            
+            // Find the message ID and store feedback in the state if possible
+            const messageId = message.getAttribute('data-message-id');
+            if (messageId && window.state && window.state.activeChatId) {
+                storeFeedbackInState(window.state.activeChatId, messageId, feedback);
+            }
         });
     });
     
-    // Append feedback buttons to message
+    // Check if the message-content exists, if not create it
+    if (!message.querySelector('.message-content')) {
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.innerHTML = message.innerHTML;
+        message.innerHTML = '';
+        message.appendChild(contentDiv);
+    }
+    
+    // Append feedback buttons to message - always at the end
     message.appendChild(feedbackButtons);
+    
+    // If feedback was previously given (stored in data attribute), restore that state
+    const previousFeedback = message.getAttribute('data-feedback-given');
+    if (previousFeedback) {
+        const selectedButton = feedbackButtons.querySelector(`[data-feedback="${previousFeedback}"]`);
+        if (selectedButton) {
+            // Disable all buttons
+            feedbackButtons.querySelectorAll('.feedback-btn').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+            
+            // Highlight the previously selected one
+            selectedButton.classList.add('selected');
+        }
+    }
+}
+
+// Store feedback in the application state
+function storeFeedbackInState(chatId, messageId, feedback) {
+    // Make sure we have access to the global state
+    if (!window.state || !window.state.chats) {
+        console.warn('Cannot store feedback - state not available');
+        return;
+    }
+
+    // Find the chat in the state
+    const chatIndex = window.state.chats.findIndex(chat => chat.id === chatId);
+    if (chatIndex === -1) return;
+
+    // Find the message in the chat
+    const messageIndex = window.state.chats[chatIndex].messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Add the feedback to the message
+    window.state.chats[chatIndex].messages[messageIndex].feedback = feedback;
+
+    // Save to localStorage if available
+    if (typeof window.saveChatsToLocalStorage === 'function') {
+        window.saveChatsToLocalStorage();
+    } else if (typeof saveChatsToLocalStorage === 'function') {
+        saveChatsToLocalStorage();
+    }
 }
 
 // Handle feedback
