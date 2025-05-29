@@ -42,13 +42,24 @@ export async function signOut() {
 
 // Get current user
 export async function getCurrentUser() {
-  const { data, error } = await supabase.auth.getUser();
-  
-  if (error) {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.warn('Error getting current user:', error.message);
+      return null;
+    }
+    
+    return data.user;
+  } catch (error) {
+    // Handle AuthSessionMissingError gracefully
+    if (error.message && error.message.includes('Auth session missing')) {
+      console.warn('Auth session missing, returning null');
+      return null;
+    }
+    // Rethrow other errors
     throw error;
   }
-  
-  return data.user;
 }
 
 // Reset password
@@ -90,11 +101,23 @@ export function onAuthStateChange(callback) {
 
 // Get user session
 export async function getSession() {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (error) {
-    throw error;
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.warn('Error getting session:', error.message);
+      return null;
+    }
+    
+    return session;
+  } catch (error) {
+    // Handle AuthSessionMissingError gracefully
+    if (error.message && error.message.includes('Auth session missing')) {
+      console.warn('Auth session missing, returning null');
+      return null;
+    }
+    // For other errors, log and return null to avoid breaking the app flow
+    console.error('Unexpected error getting session:', error);
+    return null;
   }
-  
-  return session;
 }

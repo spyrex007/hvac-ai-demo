@@ -1,5 +1,5 @@
 // Authentication UI components and functionality
-import { signUp, signIn, resetPassword, signOut, getCurrentUser, onAuthStateChange } from './auth.js';
+import { signUp, signIn, resetPassword, signOut, getCurrentUser, onAuthStateChange, getSession } from './auth.js';
 import { migrateUserDataToSupabase } from './migration.js';
 
 // DOM Elements for Auth UI
@@ -371,42 +371,51 @@ function checkApiKeyAndUpdateUI() {
 
 // Check authentication state
 async function checkAuthState() {
+    // Hide auth container initially to prevent flash of login form
+    if (authElements.authContainer) {
+        authElements.authContainer.style.visibility = 'hidden';
+    }
+    
     try {
-        // Hide auth container initially to prevent flash of login form
-        if (authElements.authContainer) {
-            authElements.authContainer.style.visibility = 'hidden';
-        }
+        // First try to get the session
+        const session = await getSession().catch(err => {
+            console.warn('Session check failed, proceeding as unauthenticated:', err.message);
+            return null;
+        });
         
-        const user = await getCurrentUser();
-        
-        if (user) {
-            // User is authenticated, update UI accordingly
-            updateAuthUI({ user });
+        if (session) {
+            // If we have a session, use it directly
+            updateAuthUI(session);
             
             // Show app container immediately if user is authenticated
             const appContainer = document.getElementById('appContainer');
             if (appContainer) {
                 appContainer.classList.remove('hidden');
             }
-            
-            // Make auth container visible again with proper state
-            if (authElements.authContainer) {
-                authElements.authContainer.style.visibility = 'visible';
-            }
         } else {
-            // No authenticated user
-            updateAuthUI(null);
+            // Fallback to getting user directly
+            const user = await getCurrentUser();
             
-            // Make auth container visible again
-            if (authElements.authContainer) {
-                authElements.authContainer.style.visibility = 'visible';
+            if (user) {
+                // User is authenticated, update UI accordingly
+                updateAuthUI({ user });
+                
+                // Show app container immediately if user is authenticated
+                const appContainer = document.getElementById('appContainer');
+                if (appContainer) {
+                    appContainer.classList.remove('hidden');
+                }
+            } else {
+                // No authenticated user
+                updateAuthUI(null);
             }
         }
     } catch (error) {
+        // Handle any errors gracefully
         console.error('Auth state check failed:', error);
         updateAuthUI(null);
-        
-        // Make auth container visible again in case of error
+    } finally {
+        // Always make auth container visible again
         if (authElements.authContainer) {
             authElements.authContainer.style.visibility = 'visible';
         }
