@@ -327,8 +327,13 @@ function addFeedbackToMessage(message) {
         message.appendChild(contentDiv);
     }
     
-    // Append feedback buttons to message - always at the end
-    message.appendChild(feedbackButtons);
+    // Create a feedback container to ensure proper positioning
+    const feedbackContainer = document.createElement('div');
+    feedbackContainer.className = 'feedback-container';
+    feedbackContainer.appendChild(feedbackButtons);
+    
+    // Append feedback container to message - always at the end
+    message.appendChild(feedbackContainer);
     
     // If feedback was previously given (stored in data attribute), restore that state
     const previousFeedback = message.getAttribute('data-feedback-given');

@@ -11,11 +11,12 @@
 .assistant-message {
   background-color: var(--card-bg, #f8fafc);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 12px 16px 42px 16px !important; /* Added extra padding at the bottom for feedback buttons */
   margin: 10px 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: visible !important;
+  min-height: 36px !important; /* Ensure enough height for feedback buttons */
 }
 
 /* Always show edit buttons with consistent styling */
@@ -25,32 +26,42 @@
   z-index: 100;
 }
 
+/* Feedback container to properly position buttons */
+.feedback-container {
+  position: absolute !important;
+  right: 16px !important;
+  bottom: 8px !important;
+  width: auto !important;
+  z-index: 50 !important;
+}
+
 /* Ensure feedback buttons are always visible and correctly positioned */
 .feedback-buttons {
-  display: flex !important;
+  display: inline-flex !important;
   justify-content: flex-end !important;
-  margin-top: 12px !important;
+  margin: 0 !important;
   gap: 8px !important;
   opacity: 1 !important;
   visibility: visible !important;
-  position: relative !important;
-  z-index: 50 !important;
+  width: auto !important;
 }
 
 /* Feedback button styles to ensure they're always visible */
 .feedback-btn {
   background-color: var(--card-bg, #f8fafc) !important;
   border: 1px solid var(--primary-color-light, #60a5fa) !important;
-  padding: 5px 10px !important;
-  border-radius: 30px !important;
-  font-size: 0.85rem !important;
+  padding: 3px 8px !important;
+  border-radius: 20px !important;
+  font-size: 0.75rem !important;
   display: flex !important;
   align-items: center !important;
-  gap: 5px !important;
+  gap: 4px !important;
   cursor: pointer !important;
   transition: all 0.2s ease !important;
   color: var(--primary-color, #2563eb) !important;
   opacity: 0.9 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
 }
 
 /* Fix hover styles */
