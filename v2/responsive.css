@@ -77,9 +77,9 @@
     
     /* Messages container - fixed height */
     .messages-container {
-        height: 350px; /* Slightly smaller on mobile */
-        min-height: 350px;
-        max-height: 350px;
+        height: 455px; /* Slightly smaller on mobile - increased by 30% */
+        min-height: 455px;
+        max-height: 455px;
     }
     
     .messages {

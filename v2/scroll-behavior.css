@@ -50,9 +50,9 @@ pre {
 
 /* Fixed height for messages container to prevent pushing other UI elements */
 .messages-container {
-  height: 400px; /* Fixed height instead of max-height */
-  min-height: 400px;
-  max-height: 400px;
+  height: 520px; /* Fixed height instead of max-height - increased by 30% */
+  min-height: 520px;
+  max-height: 520px;
   overflow-y: auto;
 }
 
