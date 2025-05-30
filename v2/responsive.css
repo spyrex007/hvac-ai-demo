@@ -110,18 +110,56 @@
         padding: 0.5rem;
     }
     
+    /* Main content area */
+    main {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding-bottom: 20px;
+    }
+    
+    /* Mode sections - preset and custom chat */
+    .mode-section {
+        flex: 1;
+        overflow-y: auto;
+        max-height: 100%;
+    }
+    
     /* Custom chat settings */
     .custom-chat-settings {
         padding: 0.75rem;
+        max-height: 60vh;
+        overflow-y: auto;
     }
     
     .settings-row {
         flex-direction: column;
+        margin-bottom: 0.75rem;
+        overflow-y: visible;
     }
     
     .settings-group {
         width: 100%;
         margin-bottom: 1rem;
+        max-height: none;
+    }
+    
+    /* Preset and custom prompts */
+    .preset-description {
+        max-height: 150px;
+        overflow-y: auto;
+        margin-top: 0.5rem;
+    }
+    
+    .system-prompt-input-container {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .system-prompt-preview {
+        max-height: 200px;
+        overflow-y: auto;
     }
     
     /* Settings modal */
