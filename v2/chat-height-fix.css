@@ -1,0 +1,31 @@
+/* Fix for chat area height to fill the window */
+.mode-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+}
+
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    min-height: calc(100vh - 120px); /* Account for header and tabs */
+    overflow: hidden;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px; /* Extra padding at the bottom for better scrolling */
+}
+
+/* Ensure the input area stays at the bottom */
+.input-area {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--border-color);
+}

@@ -17,6 +17,9 @@
     <link rel="stylesheet" href="scroll-behavior.css">
     <link rel="stylesheet" href="input-fix.css">
     <link rel="stylesheet" href="chat-fixes.css">
+    <link rel="stylesheet" href="chat-ui-updates.css">
+    <link rel="stylesheet" href="chat-height-fix.css">
+    <link rel="stylesheet" href="custom-chat-fix.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Add theme color for mobile browsers -->
     <meta name="theme-color" content="#2563eb">
@@ -175,51 +178,7 @@
 
         <main>
             <!-- Chat Mode Section -->
-            <section id="chatSection" class="mode-section">
-                <!-- Feature Cards -->
-                <div class="feature-cards">
-                    <div class="feature-card">
-                        <div class="feature-icon quick-diagnosis">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                        </div>
-                        <div class="feature-title">Quick Diagnosis</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon schedule-service">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                        </div>
-                        <div class="feature-title">Schedule Service</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon generate-report">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                        </div>
-                        <div class="feature-title">Generate Report</div>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon emergency-call">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                            </svg>
-                        </div>
-                        <div class="feature-title">Emergency Call</div>
-                    </div>
-                </div>
-
+            <section id="chatSection" class="mode-section mode-easy">
                 <!-- Chat Area -->
                 <div class="chat-area">
                     <div class="messages-container" id="chatMessages">
@@ -280,12 +239,45 @@
                     </div>
                 </div>
                 
+                <!-- Chat Mode Panels -->
+                <div id="presetSettings" class="preset-settings-panel hidden">
+                    <div class="prompt-settings">
+                        <h3>Preset Prompt</h3>
+                        <select id="presetPrompt" class="preset-select">
+                            <option value="">Select a Preset</option>
+                            <!-- Preset options will be populated by JavaScript with categories -->
+                        </select>
+                        <div class="preset-description" id="presetDescription">
+                            <!-- Preset description will appear here when selected -->
+                        </div>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label for="maxTokens">Max Tokens:</label>
+                        <input type="number" id="maxTokensPreset" min="100" max="4000" value="2000">
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label for="temperaturePreset">Temperature:</label>
+                        <input type="range" id="temperaturePreset" min="0" max="2" step="0.1" value="0.7">
+                        <span id="temperatureValuePreset">0.7</span>
+                    </div>
+                    
+                    <div class="settings-group">
+                        <label for="modelSelectionPreset">Model:</label>
+                        <select id="modelSelectionPreset" class="model-selector">
+                            <option value="gpt-4" selected>GPT-4</option>
+                            <option value="gpt-4o">GPT-4o</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <!-- Custom Chat Settings (hidden by default) -->
-                <div id="customChatSettings" class="custom-chat-settings hidden">
+                <div id="customChatSettings" class="custom-chat-settings">
                     <div class="settings-row">
                         <div class="settings-group">
-                            <label for="presetPrompt">Preset Prompt:</label>
-                            <select id="presetPrompt" class="enhanced-select">
+                            <label for="customPresetPrompt">Preset Prompt:</label>
+                            <select id="customPresetPrompt" class="enhanced-select">
                                 <option value="">Select a Preset</option>
                                 <!-- Preset options will be populated by JavaScript with categories -->
                             </select>
@@ -295,12 +287,11 @@
                         </div>
                     </div>
                     
-                    
                     <div class="settings-row">
                         <div class="settings-group system-prompt-manager">
                             <div class="system-prompt-header">
                                 <label for="customSystemPrompt">System Instructions:</label>
-                                <button id="displaySystemPrompt" class="small-btn toggle-btn">
+                                <button id="displaySystemPrompt" class="small-btn toggle-btn" onclick="toggleSystemPromptView()">
                                     <span class="toggle-icon">👁️</span> View Current
                                 </button>
                             </div>
@@ -325,6 +316,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="settings-row">
                         <div class="settings-group">
                             <label for="maxTokens">Max Tokens:</label>
@@ -343,6 +335,7 @@
                             </select>
                         </div>
                     </div>
+                    
                     <div class="settings-row custom-settings-actions">
                         <button id="resetCustomSettings" class="small-btn">♻️ Reset Custom Settings</button>
                     </div>
@@ -504,7 +497,58 @@
     <!-- Syntax highlighting -->
     <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/styles/github.min.css">
+    <style>
+        /* Fix for the gap between chat window and input area */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px; /* Reduced margin */
+        }
+        
+        .input-area {
+            margin-top: 0; /* Remove top margin */
+        }
+        
+        /* Ensure proper spacing for system prompt preview */
+        #systemPromptPreview {
+            margin-top: 10px;
+        }
+    </style>
     <!-- Dynamic Content Handler - ensures proper scrolling for dynamically injected elements -->
     <script src="dynamic-content-handler.js"></script>
+    <!-- Custom Scripts -->
+    <script src="chat-modes.js"></script>
+    <script src="custom-chat-handlers.js"></script>
+    <script>
+        // Direct toggle function for system prompt preview
+        function toggleSystemPromptView() {
+            const preview = document.getElementById('systemPromptPreview');
+            const button = document.getElementById('displaySystemPrompt');
+            
+            if (preview) {
+                // Toggle the hidden class
+                preview.classList.toggle('hidden');
+                
+                // Update button text based on visibility
+                if (preview.classList.contains('hidden')) {
+                    button.innerHTML = '<span class="toggle-icon">👁️</span> View Current';
+                } else {
+                    button.innerHTML = '<span class="toggle-icon">🔽</span> Hide Current';
+                    // Update content if needed
+                    if (typeof updateSystemPromptPreview === 'function') {
+                        updateSystemPromptPreview();
+                    }
+                    // Scroll to the preview
+                    preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+    </script>
 </body>
 </html>

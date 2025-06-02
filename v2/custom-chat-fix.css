@@ -1,0 +1,196 @@
+/* Styles for restored Custom Chat settings panel */
+
+/* Settings Row Layout */
+.settings-row {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* System Prompt Manager */
+.system-prompt-manager {
+    width: 100%;
+}
+
+.system-prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.toggle-btn {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toggle-btn:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.system-prompt-input-container {
+    width: 100%;
+}
+
+#customSystemPrompt {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    margin-bottom: 8px;
+}
+
+.system-prompt-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.action-btn:hover {
+    background-color: var(--button-hover);
+}
+
+.btn-icon {
+    font-weight: bold;
+}
+
+/* System Prompt Preview */
+.system-prompt-preview {
+    margin-top: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.system-prompt-preview.hidden {
+    display: none;
+}
+
+.preview-header {
+    background-color: var(--background-color);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.danger-btn {
+    background-color: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.danger-btn:hover {
+    background-color: #fecaca;
+}
+
+.system-prompt-content {
+    padding: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    white-space: pre-wrap;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Preset Description */
+.preset-description {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Enhanced Select */
+.enhanced-select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: white;
+}
+
+/* Custom Settings Actions */
+.custom-settings-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.small-btn {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.small-btn:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.test-ai-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.test-ai-btn:hover {
+    background-color: var(--button-hover);
+}
+
+/* Make sure all input elements in settings have consistent styling */
+.custom-chat-settings input[type="number"],
+.custom-chat-settings input[type="range"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .custom-chat-settings {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .settings-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+}

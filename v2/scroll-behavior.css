@@ -73,7 +73,6 @@ pre {
 }
 
 /* Ensure flex containers wrap properly with dynamic content */
-.feature-cards,
 .settings-row,
 .edit-message-actions,
 .quick-reply-container {

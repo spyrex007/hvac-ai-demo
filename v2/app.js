@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         temperatureValue: document.getElementById('temperatureValue'),
         modelSelection: document.getElementById('modelSelection'),
         presetPrompt: document.getElementById('presetPrompt'),
+        customPresetPrompt: document.getElementById('customPresetPrompt'),
         // Web search toggle
         webSearchToggle: document.getElementById('webSearchToggle'),
         webSearchStatus: document.getElementById('webSearchStatus'),
@@ -1757,48 +1758,76 @@ if (elements.presetPrompt) {
 
 // Function to populate preset selector
 function populatePresetSelector() {
-    if (!elements.presetPrompt) {
-        console.error('Preset prompt element not found');
-        return;
+    console.log('Populating preset selectors with presets:', state.presets);
+    
+    // Function to populate a single preset selector
+    const populateSelector = (selector) => {
+        if (!selector) return false;
+        
+        // Clear all existing options except the first one (the placeholder)
+        while (selector.options.length > 1) {
+            selector.remove(1);
+        }
+        
+        // Add all presets directly to ensure they appear
+        if (state.presets.length > 0) {
+            state.presets.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.id;
+                option.textContent = preset.name;
+                if (preset.category) {
+                    option.textContent = `${preset.name} (${preset.category})`;
+                }
+                option.dataset.description = preset.description || '';
+                selector.appendChild(option);
+            });
+            return true;
+        }
+        return false;
+    };
+    
+    // Populate the main preset dropdown
+    const mainPopulated = populateSelector(elements.presetPrompt);
+    if (!mainPopulated) {
+        console.error('No presets available or preset prompt element not found');
     }
     
-    console.log('Populating preset selector with presets:', state.presets);
-    
-    // Clear all existing options except the first one (the placeholder)
-    while (elements.presetPrompt.options.length > 1) {
-        elements.presetPrompt.remove(1);
-    }
-    
-    // Simple approach first - add all presets directly to ensure they appear
-    if (state.presets.length > 0) {
-        console.log('Adding all presets directly to ensure they appear');
-        state.presets.forEach(preset => {
-            const option = document.createElement('option');
-            option.value = preset.id;
-            option.textContent = preset.name;
-            if (preset.category) {
-                option.textContent = `${preset.name} (${preset.category})`;
-            }
-            option.dataset.description = preset.description || '';
-            elements.presetPrompt.appendChild(option);
-        });
-    } else {
-        console.error('No presets available to populate selector');
+    // Populate the custom preset dropdown
+    const customPopulated = populateSelector(elements.customPresetPrompt);
+    if (!customPopulated && elements.customPresetPrompt) {
+        console.error('Failed to populate custom preset dropdown');
     }
     
     // Set the selected value if one exists in localStorage
     if (state.selectedPreset) {
-        elements.presetPrompt.value = state.selectedPreset;
+        if (elements.presetPrompt) elements.presetPrompt.value = state.selectedPreset;
+        if (elements.customPresetPrompt) elements.customPresetPrompt.value = state.selectedPreset;
     }
     
-    // Add change event listener to update description
-    elements.presetPrompt.removeEventListener('change', updatePresetDescription); // Remove any existing listener
-    elements.presetPrompt.addEventListener('change', updatePresetDescription);
+    // Add change event listeners for both preset dropdowns
+    if (elements.presetPrompt) {
+        // Define named handler functions that we can reference for removal
+        elements.presetPrompt.onchange = function() {
+            handlePresetChange(elements.presetPrompt);
+        };
+    }
+    
+    if (elements.customPresetPrompt) {
+        elements.customPresetPrompt.onchange = function() {
+            handlePresetChange(elements.customPresetPrompt);
+        };
+    }
     
     // Update description for the selected preset
     updatePresetDescription();
     
-    console.log('Preset selector populated successfully with', elements.presetPrompt.options.length - 1, 'presets');
+    console.log('Preset selectors populated successfully');
+    if (elements.presetPrompt) {
+        console.log('Main preset selector has', elements.presetPrompt.options.length - 1, 'options');
+    }
+    if (elements.customPresetPrompt) {
+        console.log('Custom preset selector has', elements.customPresetPrompt.options.length - 1, 'options');
+    }
 }
 
 // Function to update preset description when a preset is selected
@@ -1812,12 +1841,31 @@ function updatePresetDescription() {
         return;
     }
     
-    if (!elements.presetPrompt) {
-        console.error('Preset prompt element not found in updatePresetDescription');
+    // Get the active preset selector based on which mode is active
+    let activePresetSelector = null;
+    
+    // Check if we're in preset mode or custom mode
+    const chatSection = document.getElementById('chatSection');
+    if (chatSection) {
+        if (chatSection.classList.contains('mode-preset') && elements.presetPrompt) {
+            activePresetSelector = elements.presetPrompt;
+        } else if (chatSection.classList.contains('mode-custom') && elements.customPresetPrompt) {
+            activePresetSelector = elements.customPresetPrompt;
+        } else {
+            // Default to presetPrompt if available
+            activePresetSelector = elements.presetPrompt || elements.customPresetPrompt;
+        }
+    } else {
+        // Fallback if chatSection not found
+        activePresetSelector = elements.presetPrompt || elements.customPresetPrompt;
+    }
+    
+    if (!activePresetSelector) {
+        console.error('No active preset selector found in updatePresetDescription');
         return;
     }
     
-    const selectedIndex = elements.presetPrompt.selectedIndex;
+    const selectedIndex = activePresetSelector.selectedIndex;
     if (selectedIndex <= 0) { // Account for the placeholder option at index 0
         console.log('No preset selected (placeholder or invalid selection)');
         presetDescription.textContent = '';
@@ -1825,7 +1873,7 @@ function updatePresetDescription() {
         return;
     }
     
-    const selectedOption = elements.presetPrompt.options[selectedIndex];
+    const selectedOption = activePresetSelector.options[selectedIndex];
     console.log('Selected option:', selectedOption);
     
     // Find the preset in the state.presets array to get its full details
@@ -1848,10 +1896,25 @@ function updatePresetDescription() {
 }
 
 // Function to handle preset selection change
-function handlePresetChange() {
-    const selectedPresetId = elements.presetPrompt.value;
+function handlePresetChange(selectorElement) {
+    // Determine which selector triggered the change
+    const activeSelector = selectorElement || elements.presetPrompt || elements.customPresetPrompt;
+    if (!activeSelector) {
+        console.error('No active selector found in handlePresetChange');
+        return;
+    }
+    
+    const selectedPresetId = activeSelector.value;
     state.selectedPreset = selectedPresetId;
     localStorage.setItem(STORAGE_KEYS.SELECTED_PRESET, selectedPresetId);
+    
+    // Synchronize both dropdowns to show the same selection
+    if (elements.presetPrompt && activeSelector !== elements.presetPrompt) {
+        elements.presetPrompt.value = selectedPresetId;
+    }
+    if (elements.customPresetPrompt && activeSelector !== elements.customPresetPrompt) {
+        elements.customPresetPrompt.value = selectedPresetId;
+    }
     
     if (selectedPresetId) {
         // Find the selected preset
@@ -1872,6 +1935,11 @@ function handlePresetChange() {
     // Update the description display
     updatePresetDescription();
 }
+
+// Expose functions to the global scope
+window.handlePresetChange = handlePresetChange;
+window.toggleSystemPromptDisplay = toggleSystemPromptDisplay;
+window.updateSystemPromptPreview = updateSystemPromptPreview;
 
 // Custom Chat Settings Functions
 function addToSystemPrompt() {

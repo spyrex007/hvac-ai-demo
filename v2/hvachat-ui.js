@@ -18,14 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    // Feature card click handlers
-    const featureCards = document.querySelectorAll('.feature-card');
-    featureCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const title = card.querySelector('.feature-title').textContent;
-            handleFeatureCardClick(title);
-        });
-    });
+    // Feature cards have been removed from the UI
 
     // Quick action button handlers
     const quickActionButtons = document.querySelectorAll('.quick-actions .action-btn');
@@ -35,31 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Handle feature card clicks
-    function handleFeatureCardClick(feature) {
-        const userInput = document.getElementById('userInput');
-        let message = '';
-
-        switch (feature) {
-            case 'Quick Diagnosis':
-                message = 'My HVAC system is making a strange noise. Can you help diagnose the issue?';
-                break;
-            case 'Schedule Service':
-                message = 'I need to schedule regular maintenance for my HVAC system. What should be included in a maintenance visit?';
-                break;
-            case 'Generate Report':
-                message = 'Can you help me generate a detailed report about my HVAC system\'s efficiency and potential improvements?';
-                break;
-            case 'Emergency Call':
-                message = 'My HVAC system completely stopped working! What should I check immediately?';
-                break;
-            default:
-                message = 'Can you tell me more about ' + feature + '?';
-        }
-
-        userInput.value = message;
-        userInput.focus();
-    }
+    // Feature card click handler function removed as feature cards have been removed from the UI
 
     // Handle quick action button clicks
     function handleQuickActionClick(action) {

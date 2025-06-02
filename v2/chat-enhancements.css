@@ -153,3 +153,173 @@
 .message {
     position: relative;
 }
+
+/* New UI Styles for Chat Modes based on the design */
+.chat-mode-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Settings Panel Styles */
+.preset-settings-panel, 
+.custom-chat-settings {
+    width: 320px;
+    border-left: 1px solid var(--border-color);
+    background-color: #fff;
+    overflow-y: auto;
+}
+
+.preset-settings-panel {
+    padding: 20px;
+}
+
+.prompt-settings {
+    margin-bottom: 24px;
+}
+
+.prompt-settings h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.preset-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 14px;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.settings-row {
+    margin-bottom: 16px;
+}
+
+/* Custom Chat Mode Specific Styles */
+.system-instructions-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+.apply-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.apply-btn:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.test-ai-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 16px;
+}
+
+/* Welcome message styling */
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.welcome-message h1 {
+    font-size: 28px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .preset-settings-panel, 
+    .custom-chat-settings {
+        width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .preset-settings-panel, 
+    .custom-chat-settings {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .chat-mode-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .tab-btn {
+        padding: 10px 16px;
+    }
+    
+    .welcome-message h1 {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .settings-row {
+        flex-direction: column;
+    }
+}

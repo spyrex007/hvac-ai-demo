@@ -1,0 +1,233 @@
+/* HvacChat UI Updates - To match the new design */
+
+/* Main Layout Structure */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Chat Mode Tabs */
+.chat-mode-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #fff;
+    padding: 0;
+    margin: 0;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tab-btn.active {
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.tab-btn:hover:not(.active) {
+    background-color: var(--hover-bg);
+    border-bottom-color: var(--border-color);
+}
+
+/* Adaptive Layout for Preset and Custom Chat Modes */
+.mode-section {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+#chatSection {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+/* Chat Area - Main Content */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+}
+
+/* Settings Panel for Preset and Custom Chat */
+.chat-settings-panel {
+    width: 320px;
+    background-color: #fff;
+    border-left: 1px solid var(--border-color);
+    padding: 16px;
+    overflow-y: auto;
+    display: none;
+    transition: transform 0.3s ease;
+}
+
+/* Only show settings panel for preset and custom modes */
+.mode-preset .preset-settings-panel,
+.mode-custom .custom-chat-settings {
+    display: block;
+}
+
+/* Preset Settings Panel */
+.preset-settings-panel {
+    display: none;
+}
+
+.preset-settings-panel h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+/* Custom Chat Settings */
+.custom-chat-settings {
+    padding: 0;
+    border-left: 1px solid var(--border-color);
+    width: 320px;
+    display: none;
+    overflow-y: auto;
+}
+
+/* Settings Group Styling */
+.settings-group {
+    margin-bottom: 20px;
+}
+
+.settings-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Preset Selection */
+.preset-dropdown {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+/* Temperature Slider */
+.temperature-slider {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Model Selector */
+.model-selector {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Action Buttons */
+.settings-action-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 16px;
+}
+
+.settings-action-btn:hover {
+    background-color: var(--primary-color-dark);
+}
+
+/* System Instructions Area */
+.system-instructions-area {
+    margin-top: 16px;
+}
+
+.system-instructions-area textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 12px;
+}
+
+.apply-instructions-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Welcome Message Styling */
+.welcome-message {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.welcome-message h1 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    #chatSection {
+        flex-direction: column;
+    }
+    
+    .chat-settings-panel,
+    .custom-chat-settings,
+    .preset-settings-panel {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-color);
+    }
+}
+
+@media (max-width: 768px) {
+    .tab-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .settings-group {
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chat-mode-tabs {
+        justify-content: space-between;
+    }
+    
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        flex: 1;
+        text-align: center;
+    }
+}
